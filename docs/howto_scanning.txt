@@ -1,0 +1,31 @@
+before starting wireshark, turn your wifi off, then run the following:
+		sudo iw phy phy0 interface add mon0 type monitor
+		sudo ip link set mon0 up
+
+at this point the card is in monitoring mode. If you're going to do channel hopping, first install the chanhop.sh script:
+	https://web.archive.org/web/20070301073636if_/http://802.11ninja.net:80/code/chanhop.sh
+
+then make it executable with:
+	sudo chmod 700 chanhop.sh
+
+afterwards, while your card is in monitor mode, run the chanhop.sh script as follows:
+	sudo ./chanhop.sh -i mon0 -b IEEE80211B -b IEEE80211A -d .25
+
+	this makes your wifi card hop over the list of all available 2.4 GHz and 5 GHz channels with 250ms waiting intervals.
+
+now start wireshark while the channel hopper runs on a separate terminal, and capture the interface named mon0.
+the main idea is for the wireshark capture tool to catch all messages from channels in 250ms intervals. 
+there are a lot of channels and packets run very fast though, so this method is bound to miss a lot of packets.
+
+------------------------------------------------------------------------------------------------------------
+About the channel hopper script:
+	Original link from  --> https://wiki.wireshark.org/CaptureSetup/WLAN
+	direct link to file --> https://web.archive.org/web/20070301073636if_/http://802.11ninja.net:80/code/chanhop.sh
+
+	this seems to be the origin of the script:
+
+	https://gist.github.com/hnw/6fbd3ac3bb59d0c93fc0bd2a823cf5cb
+
+	but I don't think this japanese person is the original writer (see comment at the top of the script)
+
+	

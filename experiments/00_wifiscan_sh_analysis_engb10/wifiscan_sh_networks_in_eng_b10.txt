@@ -1,0 +1,250 @@
+this was obtained using elec491_s24_wifipositioning/scripts/wifiscan.sh
+
+BSS 70:b3:17:ab:b3:af(on wlp59s0) -- associated
+	last seen: 6977.622s [boottime]
+	TSF: 13156395462429 usec (152d, 06:33:15)
+	freq: 5600
+	beacon interval: 100 TUs
+	capability: ESS Privacy SpectrumMgmt RadioMeasure (0x1111)
+	signal: -61.00 dBm
+	last seen: 1000 ms ago
+	Information elements from Probe Response frame:
+	SSID: KU
+BSS 80:2d:bf:fb:a0:ef(on wlp59s0)
+	last seen: 6977.720s [boottime]
+	TSF: 9866899765085 usec (114d, 04:48:19)
+	freq: 5660
+	beacon interval: 100 TUs
+	capability: ESS Privacy SpectrumMgmt RadioMeasure (0x1111)
+	signal: -80.00 dBm
+	last seen: 904 ms ago
+	Information elements from Probe Response frame:
+	SSID: KU
+BSS 80:2d:bf:fb:a0:ee(on wlp59s0)
+	last seen: 6977.720s [boottime]
+	TSF: 9866899765419 usec (114d, 04:48:19)
+	freq: 5660
+	beacon interval: 100 TUs
+	capability: ESS SpectrumMgmt RadioMeasure (0x1101)
+	signal: -80.00 dBm
+	last seen: 904 ms ago
+	Information elements from Probe Response frame:
+	SSID: GUEST
+BSS 80:2d:bf:fb:a0:ed(on wlp59s0)
+	last seen: 6977.720s [boottime]
+	TSF: 9866899765719 usec (114d, 04:48:19)
+	freq: 5660
+	beacon interval: 100 TUs
+	capability: ESS Privacy SpectrumMgmt RadioMeasure (0x1111)
+	signal: -80.00 dBm
+	last seen: 904 ms ago
+	Information elements from Probe Response frame:
+	SSID: eduroam
+BSS 70:b3:17:ab:b0:af(on wlp59s0)
+	last seen: 6977.885s [boottime]
+	TSF: 13156356506894 usec (152d, 06:32:36)
+	freq: 5260
+	beacon interval: 100 TUs
+	capability: ESS Privacy SpectrumMgmt RadioMeasure (0x1111)
+	signal: -86.00 dBm
+	last seen: 740 ms ago
+	Information elements from Probe Response frame:
+	SSID: KU
+BSS 70:b3:17:ab:b0:ae(on wlp59s0)
+	last seen: 6977.885s [boottime]
+	TSF: 13156356507193 usec (152d, 06:32:36)
+	freq: 5260
+	beacon interval: 100 TUs
+	capability: ESS SpectrumMgmt RadioMeasure (0x1101)
+	signal: -85.00 dBm
+	last seen: 740 ms ago
+	Information elements from Probe Response frame:
+	SSID: GUEST
+BSS 70:b3:17:ab:b0:ad(on wlp59s0)
+	last seen: 6977.885s [boottime]
+	TSF: 13156356507516 usec (152d, 06:32:36)
+	freq: 5260
+	beacon interval: 100 TUs
+	capability: ESS Privacy SpectrumMgmt RadioMeasure (0x1111)
+	signal: -84.00 dBm
+	last seen: 740 ms ago
+	Information elements from Probe Response frame:
+	SSID: eduroam
+BSS 80:2d:bf:fb:a0:e0(on wlp59s0)
+	last seen: 6949.520s [boottime]
+	TSF: 9866871500811 usec (114d, 04:47:51)
+	freq: 2412
+	beacon interval: 100 TUs
+	capability: ESS Privacy SpectrumMgmt ShortSlotTime RadioMeasure (0x1511)
+	signal: -74.00 dBm
+	last seen: 29104 ms ago
+	SSID: KU
+BSS 80:2d:bf:fb:a0:e1(on wlp59s0)
+	last seen: 6949.520s [boottime]
+	TSF: 9866871500811 usec (114d, 04:47:51)
+	freq: 2412
+	beacon interval: 100 TUs
+	capability: ESS SpectrumMgmt ShortSlotTime RadioMeasure (0x1501)
+	signal: -74.00 dBm
+	last seen: 29104 ms ago
+	SSID: GUEST
+BSS 80:2d:bf:fb:a0:e2(on wlp59s0)
+	last seen: 6949.418s [boottime]
+	TSF: 9866871399465 usec (114d, 04:47:51)
+	freq: 2412
+	beacon interval: 100 TUs
+	capability: ESS Privacy SpectrumMgmt ShortSlotTime RadioMeasure (0x1511)
+	signal: -74.00 dBm
+	last seen: 29204 ms ago
+	SSID: eduroam
+BSS 70:b3:17:ab:94:e0(on wlp59s0)
+	last seen: 6949.418s [boottime]
+	TSF: 13156352000011 usec (152d, 06:32:32)
+	freq: 2412
+	beacon interval: 100 TUs
+	capability: ESS Privacy RadioMeasure (0x1011)
+	signal: -85.00 dBm
+	last seen: 29204 ms ago
+	SSID: KU
+BSS 70:b3:17:ab:94:e1(on wlp59s0)
+	last seen: 6949.520s [boottime]
+	TSF: 13156352000011 usec (152d, 06:32:32)
+	freq: 2412
+	beacon interval: 100 TUs
+	capability: ESS RadioMeasure (0x1001)
+	signal: -85.00 dBm
+	last seen: 29104 ms ago
+	SSID: GUEST
+BSS 70:b3:17:ab:94:e2(on wlp59s0)
+	last seen: 6949.520s [boottime]
+	TSF: 13156352000011 usec (152d, 06:32:32)
+	freq: 2412
+	beacon interval: 100 TUs
+	capability: ESS Privacy RadioMeasure (0x1011)
+	signal: -85.00 dBm
+	last seen: 29104 ms ago
+	SSID: eduroam
+BSS 70:b3:17:b7:04:01(on wlp59s0)
+	last seen: 6963.105s [boottime]
+	TSF: 13156365942686 usec (152d, 06:32:45)
+	freq: 2437
+	beacon interval: 100 TUs
+	capability: ESS ShortSlotTime RadioMeasure (0x1401)
+	signal: -85.00 dBm
+	last seen: 15520 ms ago
+	Information elements from Probe Response frame:
+	SSID: GUEST
+BSS 70:b3:17:b7:04:02(on wlp59s0)
+	last seen: 6977.065s [boottime]
+	TSF: 13156379860299 usec (152d, 06:32:59)
+	freq: 2437
+	beacon interval: 100 TUs
+	capability: ESS Privacy ShortSlotTime RadioMeasure (0x1411)
+	signal: -85.00 dBm
+	last seen: 1560 ms ago
+	Information elements from Probe Response frame:
+	SSID: eduroam
+BSS 70:b3:17:ab:95:80(on wlp59s0)
+	last seen: 6977.065s [boottime]
+	TSF: 13156349285148 usec (152d, 06:32:29)
+	freq: 2437
+	beacon interval: 100 TUs
+	capability: ESS Privacy RadioMeasure (0x1011)
+	signal: -86.00 dBm
+	last seen: 1560 ms ago
+	Information elements from Probe Response frame:
+	SSID: KU
+BSS 70:b3:17:ab:95:82(on wlp59s0)
+	last seen: 6950.002s [boottime]
+	TSF: 13156322304011 usec (152d, 06:32:02)
+	freq: 2437
+	beacon interval: 100 TUs
+	capability: ESS Privacy RadioMeasure (0x1011)
+	signal: -85.00 dBm
+	last seen: 28620 ms ago
+	SSID: eduroam
+BSS 70:b3:17:b7:04:00(on wlp59s0)
+	last seen: 6963.105s [boottime]
+	TSF: 13156365942393 usec (152d, 06:32:45)
+	freq: 2437
+	beacon interval: 100 TUs
+	capability: ESS Privacy ShortSlotTime RadioMeasure (0x1411)
+	signal: -84.00 dBm
+	last seen: 15520 ms ago
+	Information elements from Probe Response frame:
+	SSID: KU
+BSS 74:ee:2a:db:79:eb(on wlp59s0)
+	last seen: 6977.065s [boottime]
+	TSF: 10464958054770 usec (121d, 02:55:58)
+	freq: 2452
+	beacon interval: 100 TUs
+	capability: ESS Privacy ShortSlotTime (0x0411)
+	signal: -90.00 dBm
+	last seen: 1560 ms ago
+	SSID: Ui12_ENGZ21A
+BSS 74:ee:2a:94:ed:c9(on wlp59s0)
+	last seen: 6977.071s [boottime]
+	TSF: 1932590182770 usec (22d, 08:49:50)
+	freq: 2452
+	beacon interval: 100 TUs
+	capability: ESS Privacy ShortSlotTime (0x0411)
+	signal: -88.00 dBm
+	last seen: 1552 ms ago
+	SSID: Ui12_ENGB06
+BSS 70:b3:17:ab:b3:a0(on wlp59s0)
+	last seen: 6950.543s [boottime]
+	TSF: 13156378214411 usec (152d, 06:32:58)
+	freq: 2462
+	beacon interval: 100 TUs
+	capability: ESS Privacy RadioMeasure (0x1011)
+	signal: -57.00 dBm
+	last seen: 28080 ms ago
+	SSID: KU
+BSS 70:b3:17:ab:b3:a1(on wlp59s0)
+	last seen: 6950.543s [boottime]
+	TSF: 13156378214411 usec (152d, 06:32:58)
+	freq: 2462
+	beacon interval: 100 TUs
+	capability: ESS RadioMeasure (0x1001)
+	signal: -57.00 dBm
+	last seen: 28080 ms ago
+	SSID: GUEST
+BSS 70:b3:17:ab:b3:a2(on wlp59s0)
+	last seen: 6950.543s [boottime]
+	TSF: 13156378214411 usec (152d, 06:32:58)
+	freq: 2462
+	beacon interval: 100 TUs
+	capability: ESS Privacy RadioMeasure (0x1011)
+	signal: -57.00 dBm
+	last seen: 28080 ms ago
+	SSID: eduroam
+BSS 70:b3:17:ab:b3:ae(on wlp59s0)
+	last seen: 6977.622s [boottime]
+	TSF: 13156395462737 usec (152d, 06:33:15)
+	freq: 5600
+	beacon interval: 100 TUs
+	capability: ESS SpectrumMgmt RadioMeasure (0x1101)
+	signal: -61.00 dBm
+	last seen: 1000 ms ago
+	Information elements from Probe Response frame:
+	SSID: GUEST
+BSS 70:b3:17:ab:b3:ad(on wlp59s0)
+	last seen: 6977.622s [boottime]
+	TSF: 13156395463069 usec (152d, 06:33:15)
+	freq: 5600
+	beacon interval: 100 TUs
+	capability: ESS Privacy SpectrumMgmt RadioMeasure (0x1111)
+	signal: -61.00 dBm
+	last seen: 1000 ms ago
+	Information elements from Probe Response frame:
+	SSID: eduroam
+BSS 74:ee:2a:db:d3:03(on wlp59s0)
+	last seen: 6963.171s [boottime]
+	TSF: 8064721041169 usec (93d, 08:12:01)
+	freq: 2452
+	beacon interval: 100 TUs
+	capability: ESS Privacy ShortSlotTime (0x0411)
+	signal: -87.00 dBm
+	last seen: 15452 ms ago
+	Information elements from Probe Response frame:
+	SSID: Ui12_ENGB16

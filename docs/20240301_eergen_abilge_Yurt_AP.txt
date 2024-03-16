@@ -1,0 +1,74 @@
+Yurt binasında yaptığımız gözlemler iki farklı katta testler yapıp
+sonuçları aşşağıda belirttik.
+
+------------------------------------------------------------
+Bodrum kat koridorda toplam 2 AP var. 
+Araları yaklaşık 10-11m. Mesafe ölçümleri göz kararı yapıldı.
+
+AP_03 :Source address: ExtremeN_03:43:c9 (d8:84:66:03:43:c9)
+AP_02 :Source address: ExtremeN_03:68:49 (d8:84:66:03:68:49)
+
+
+AP_03 ün tam altında yapılan ölçümler:
+AP_03 = -32,-33 dbm
+AP_02 = -55,-56 dbm
+
+
+AP_02 nin tam altında yapılan ölçümler:
+AP_02 = -35, -36 dbm
+AP_03 = -52, -53 dbm
+
+AP_02 ile AP_03 tam ortasında yapılan ölçümler:
+AP_03 = -48dbm
+AP_02 = -57, -58 dbm
+
+AP_02 nin tam altında -32 dbm.
+AP_02 den 2m uzaklıkta -35 dbm.
+AP_02 den 5m uzaklıkta -45 dbm.
+AP_02 den 5m uzaklıkta arada insan varken -50 dbm
+AP_02 den 9m uzaklıkta -57 dbm
+
+Genel gözlemler:
+
+RSS değeri ile uzaklık arasında ki ilişki:
+AP den uzaklaşırken eğer AP ye yakınsak (5m nin altı)
+RSS değeri daha hızlı değişirken,
+Eğer AP den uzaksak (5m nin üstü) dbm in düşüş hızı azalmaktadır. 
+
+Araya insan veya duvar girmesi RSS değeri ciddi şekilde etkilemektedir.
+2 farklı katta deneme yaptığımızdan bunu gözlemleyebildik fakat buraya eklemedik.
+
+AP lerin source adresslerini, tam altlarında yaptığımız testlerde 
+en yüksek RSS değeri veren "KU" SSID li wifi paketlerinden elde ettik.
+
+Farklı AP lerden eşit uzaklıkta yaptığımız testlerde farklı RSS değerleri elde ettik.
+Buda demektirki aynı RSS değeri değeri veren AP ler farklı mesafelerde olabilir.  
+
+-------------------------------------------------------------
+Giriş Kat koridorda 5m aralıklarla toplam 3 AP var.
+
+
+AP_11 :Source address: ExtremeN_39:29:e8 (d8:84:66:39:29:e8)
+AP_12 :Source address: ExtremeN_4a:06:c9 (d8:84:66:4a:06:c9)
+AP_13 :Source address: ExtremeN_03:61:00 (d8:84:66:03:61:00)
+
+
+AP_11 in tam altında yapılan ölçümler:
+AP_11 = -35,-36 dbm
+AP_12 = -52 dbm
+AP_13 = -60, -61 dbm
+
+AP_12 nin tam altında yapılan ölçümler:
+AP_11 = -49, -50 dbm
+AP_12 = -35, -36 dbm
+AP_13 = -65, -66 dbm
+
+AP_13 ün tam altında yapılan ölçümler :
+AP_11 = -61, -63 dbm
+AP_12 = -64 dbm
+AP_13 = -34, -35 dbm
+
+
+
+
+
