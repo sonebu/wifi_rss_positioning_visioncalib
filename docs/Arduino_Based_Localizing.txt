@@ -1,0 +1,26 @@
+	Arduino-Based Location Tracking 
+
+1-)Indoor Positioning Using WIFI (RSSI) and Machine Learning
+This method applies the fingerprint method using machine learning.
+It does not have high sensitivity values. However, in large areas with
+more than one room, it can detect which room it is in.
+It uses SVM Classifier as the machine learning algorithm.
+Link is:
+https://www.hackster.io/news/indoor-positioning-using-arduino-and-machine-learning-in-4-easy-steps-295d39e5e7c9
+
+2-)Indoor Positioning Using WIFI (RSSI) and Machine Learning v.2
+This method is the same with first one but it uses Classifier ML model.
+Link is:
+https://eloquentarduino.com/posts/arduino-wifi-indoor-positioning
+
+3-)Indoor positioning system using visible light communication and ultrasound
+This method is employe Visible Light Communication to determine the location
+Since we do not want to use any other complicated system, we will not use it.
+Link is:
+https://doi.org/10.1109/ICCE‑TW.2014.6904066
+
+4-)Indoor Ultra-wide Band (UWB) Positioning 
+This method uses UWB radio frequency signals to localization. It requires
+some UWB transmitter and receivers. It is costly.
+Link is:
+https://www.instructables.com/10-CM-Accurate-Ultra-wide-Band-UWB-Positioning-for/
