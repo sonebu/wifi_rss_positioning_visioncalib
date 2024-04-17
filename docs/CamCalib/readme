@@ -1,0 +1,7 @@
+nokta secerek kalibre etme yontemi -> sonuc olarak homography matrix veriyor:
+https://github.com/zhengthomastang/Cal_PnP
+
+Kodunu bulamadigim, kafa ve ayak konumuna gore kalibrasyon yapan metod (paper, slides ve demo bolumunde video var ve nasil yapildigini anlatiyor):
+https://github.com/zhengthomastang/zhengthomastang.github.io/blob/master/_publications/SelfCalHum.md
+
+
