@@ -1,4 +1,4 @@
-nokta secerek kalibre etme yontemi -> sonuc olarak homography matrix veriyor:
+nokta secerek kalibre etme yontemi -> sonuc olarak homography matrix veriyor (bunu adamin yaptigi sekilde calistirabildim, evde test etmem gerekiyor ne kadar dogru calistigini test etmek icin):
 https://github.com/zhengthomastang/Cal_PnP
 
 Kodunu bulamadigim, kafa ve ayak konumuna gore kalibrasyon yapan metod (yayinladigi paperi ayrica ekliyorum ders silayti ve demoda asagidaki linkte mevcut):
