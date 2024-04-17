@@ -4,7 +4,7 @@ Camera Calibration
 nokta secerek kalibre etme yontemi -> sonuc olarak homography matrix veriyor (bunu adamin yaptigi sekilde calistirabildim, evde test etmem gerekiyor ne kadar dogru calistigini test etmek icin):
 https://github.com/zhengthomastang/Cal_PnP
 
-Kodunu bulamadigim, kafa ve ayak konumuna gore kalibrasyon yapan metod (yayinladigi paperi ayrica ekliyorum ders silayti ve demoda asagidaki linkte mevcut):
+Kodunu bulamadigim, kafa ve ayak konumuna gore kalibrasyon yapan metod (yayinladigi paperi ayrica ekliyorum ders slayti ve demo asagidaki linkte mevcut):
 https://github.com/zhengthomastang/zhengthomastang.github.io/blob/master/_publications/SelfCalHum.md
 
 Son olarakta aşşağıya eklediğim linki buldum, bu repo çok uzundu hepsini detaylı inceleyemedim. Dikkatimi çeken bir kısım vardı bu repoda da o da Overall Pipeline kısmında anlatılan Single-Camera Tracking.
