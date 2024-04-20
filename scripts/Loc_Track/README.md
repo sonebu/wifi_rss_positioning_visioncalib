@@ -4,6 +4,6 @@ https://github.com/zhengthomastang/Cal_PnP bu repoda bazi seyleri degistirdim o 
 
 ![Alt text](lokasyon.png)
 
-bizim salondaki hali uzerinde test ettim 2 farkli yere koydum kamerayi ikisindede benzer sonuc verdi, salon biraz kucuk oldugu icin kameraya yakin oldugum yerlerde sonuc yanlis gozukuyor ama kamerdan uzak bir yere gecince ve halinin ortasinda bekleyince sonuc iyi gozukuyor (biraz noise var gibi ama daha buyuk bir yerde yapinca accuracy artar diye tahmin ediyorum).
+bizim salondaki hali uzerinde test ettim 2 farkli yere koydum kamerayi ikisindede benzer sonuc verdi, (resimdeki ornekte kamera 7,15 noktasinda) salon biraz kucuk oldugu icin kameraya yakin oldugum yerlerde sonuc yanlis gozukuyor ama kamerdan uzak bir yere gecince ve halinin ortasinda bekleyince sonuc iyi gozukuyor (biraz noise var gibi ama daha buyuk bir yerde yapinca accuracy artar diye tahmin ediyorum).
 
 Su anda tek sorunumuz baska birisi de ayni ortamda bulunursa ikisini birbirine karistiriyor bu sorunu henuz cozemedim.  
