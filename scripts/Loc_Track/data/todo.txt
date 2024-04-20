@@ -1,0 +1,1 @@
+bir resim yuklenmesi gerekiyor testin yapilacagi ortam icin resmin ismi pic4.jpeg olmali ya da cfg icerisinden ismini degistirerek uygun bir sey yuklenmeli
