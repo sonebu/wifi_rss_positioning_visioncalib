@@ -1,0 +1,28 @@
+{
+  "data": [
+    {
+      "timestamp": "00:00:000",
+      "location": {
+        "loc_x": 123,
+        "loc_y": 456
+      },
+      "signal_strength": {
+        "RSS_1": -70,
+        "RSS_2": -75,
+        "RSS_3": -80
+      }
+    },
+    {
+      "timestamp": "00:00:010",
+      "location": {
+        "loc_x": 234,
+        "loc_y": 567
+      },
+      "signal_strength": {
+        "RSS_1": -72,
+        "RSS_2": -78,
+        "RSS_3": -82
+      }
+    }
+  ]
+}
