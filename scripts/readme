@@ -1,2 +1,8 @@
-- wifiscan.sh ile pek bir işimiz yok, o okulda ofisin etrafındaki AP'leri görmek içindi sadece
-- chanhop.sh wireshark / tshark ile birlikte çalışabilir vaziyette 
+compile_and_run dosyasi ilk olarak https://github.com/zhengthomastang/Cal_PnP githubundan aldigimiz kodu calistiriyor kodu biraz degistirmistim ve su anda sadece 2D-2D mapping yapmamiz
+icin nokta secme islemini kisaltiyor. Devaminda cv.py dosyasini calistiriyor ve bu dosya bir onceki adimda sectigimiz noktalari aliyor ve manuel olarak girdigimiz noktalarla map edip 
+homography matrix cikariyor. Devaminda kutucuk ile tespit edilen edilen kisinin canli konumunu gosteriyor (Kutucugun alt kisminin ortasi). 
+
+
+Model_localize.py demoda kullandigimiz yurt girisinde anlik konumu gosteren yanip sonen noktayi gostermek icin var model.pth ile birlikte calisiyor. Bitirme videosunu cekebilmek icin yapmistik.
+
+Chanhop dosyasi da yurt girisindeki 3 AP ye ozel calisacak sekilde degistirildi.
