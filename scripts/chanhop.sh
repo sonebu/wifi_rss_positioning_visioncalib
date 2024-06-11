@@ -8,12 +8,12 @@
 
 # Defaults
 BANDS="IEEE80211B"
-DWELLTIME=".25"
+DWELLTIME=".033"
 
-CHANB="1 6 11 2 7 3 8 4 9 5 10"
+CHANB="1 6"
 CHANBJP="1 13 6 11 2 12 7 3 8 14 4 9 5 10"
 CHANBINTL="1 13 6 11 2 12 7 3 8 4 9 5 10"
-CHANA="36 40 44 48 52 56 60 149 153 157 161"
+CHANA="36"
 
 requireutil () {
 	while [ -n "$1" ]; do
@@ -69,6 +69,7 @@ while [ -n "$1" ]; do
 		;;
 	-b|--band)
 		ARG_BANDS="$2 $ARG_BANDS"
+		
 		shift
 		;;
 	-d|--dwelltime)
@@ -131,6 +132,13 @@ while true; do
 		if [ $? -ne 0 ] ; then
 			fail "iwconfig returned an error when setting channel $CHANNEL"
 		fi
-		sleep $DWELLTIME
+		time=$(date +"%M%S")
+
+	        #thark -i mon0 -T fields -e frame.time -e wlan.sa -e wlan_radio.signal_dbm -e wlan.ssid -a duration:2 | grep "KU" >> "rss_${time}.txt" &
+		
+    		#if [ -f "$old_filename" ]; then
+        	#	rm "$old_filename"
+    		#fi
+		#sleep $DWELLTIME
 	done
 done
