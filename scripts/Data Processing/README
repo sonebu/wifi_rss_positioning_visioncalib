@@ -1,0 +1,18 @@
+Wireshark ile data toplanıp, pcap dosyalarını filtrenip (time,source,rss) Ctrl+c, ctrl+v ile txt ye aktarıldı. (kayit1-9.txt)
+
+Kameradan gelen konum verileri "katıt_final_loc" terminalden grep ile parçalanıp sadece time, loc_X, loc_y bırakıldı.
+
+Bu txt dosyaları seperate ve seperatelocs ile 25ms ve katlarına yuvarlanıyor ve kayıtro1-9.txt,locationsro.txt oluşturuluyor.
+
+kayıtro1-9 birleştirilip tek bir txt ye yazılıyor. kayıtall.txt
+
+round edilen veriler mixer.py ile birleştirilip, mixed.txt oluşturuluyor. time,locx,locy,rss values (if available)
+
+aynı timestampde 1 den fazla data gelebiliyor. Model, json formatında timestamp ile saklandığından hata almamak adına aynı olan timestamplerden birini bir artırdık. mixerupdate.py
+
+Daha sonra oluşan mixed2.txt excel üzerinden işlenerek aradaki boşluklar dolduruldu. excelin kutools eklentisinin boşlukları doldur fonksiyonu ile boşluklar lineer olarak dolduruldu.
+
+oluşan excel dosyası finaldata.xlsx convertjson.py ile önce karıştırılıp daha sonra jsona çevirildi ve kullanıma hazır hale geldi
+
+
+
