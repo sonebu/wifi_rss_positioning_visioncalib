@@ -1,0 +1,6 @@
+#1- nearest neighbour az pt            ||    
+#2- nearest neighbour çok pt           || --> bu metodlar için şu commit ID'de implementation var: f3a2db49692c0928cd671d593489ffb04ea6e9ba        
+#3- nearest neighbour çok pt + interp  --> bunun implementation'ı github'da yok şu anda (1/r^2 model kullanılmıştı)
+#4- MLP-based supervised model
+#5- nearest neighbour çok pt + MLP ...
+#...

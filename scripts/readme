@@ -1,8 +1,1 @@
-compile_and_run dosyasi ilk olarak https://github.com/zhengthomastang/Cal_PnP githubundan aldigimiz kodu calistiriyor kodu biraz degistirmistim ve su anda sadece 2D-2D mapping yapmamiz
-icin nokta secme islemini kisaltiyor (Loc Track dosyasi icinde). Devaminda cv.py dosyasini calistiriyor ve bu dosya bir onceki adimda sectigimiz noktalari aliyor ve manuel olarak girdigimiz noktalarla map edip 
-homography matrix cikariyor (manuel girilen noktalar gridlenen alandaki gercek lokasyonlar). Devaminda yolo yardimiyla kutucuk ile tespit edilen edilen kisinin canli konumunu gosteriyor (Kutucugun alt kisminin ortasi referans alindi). 
-
-
 Model_localize.py demoda kullandigimiz yurt girisinde anlik konumu gosteren yanip sonen noktayi gostermek icin var model.pth ile birlikte calisiyor. Bitirme videosunu cekebilmek icin yapmistik.
-
-Chanhop dosyasi da yurt girisindeki 3 AP ye ozel calisacak sekilde degistirildi.

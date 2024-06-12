@@ -1,4 +1,4 @@
-this was obtained using elec491_s24_wifipositioning/scripts/wifiscan.sh
+this was obtained using wifiscan.sh in ENG B10 one night
 
 BSS 70:b3:17:ab:b3:af(on wlp59s0) -- associated
 	last seen: 6977.622s [boottime]
