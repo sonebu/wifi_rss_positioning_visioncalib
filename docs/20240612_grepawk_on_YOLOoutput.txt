@@ -1,0 +1,14 @@
+Hocam selamlar,
+
+Historyde aradim ama bizim kullandigimiz commandi bulamadim. Birebir aynisi degil ama asagidaki command gibi bir seydi. Lokasyon kayit dosyasini da ekledim. Parse edilince
+Timestamp          loc_x     loc_y
+ 21:24:31.0199 -5.5537 -1.6765
+ 21:24:31.2218 -5.5717 -1.6276
+ 21:24:31.4171 -5.5867 -1.5868
+formatina donuyor.
+
+Command:
+cat kayit_final_lokasyon.txt | grep 21: | cut -d']' -f1 | awk 'BEGIN { ORS=" " };{print "\n";print substr($1,1,13); print $3;print $4;}' > test_loc.txt
+
+Saygilarimla,
+Abdulkadir Bilge
