@@ -192,6 +192,8 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             self.label_2.setText("<font color='green'>Cam opened, streaming</font>")
             self.lineEdit_2.setEnabled(False);
             self.lineEdit_2.setStyleSheet("QLineEdit { background-color: gray; font-weight: bold}")
+            with open(self.validated_exp_path + "/devstring.txt","w") as f:
+                f.write(self.lineEdit_2.text())
             global state
             state = "select_mode"
             cap.set(3, cam_res[0])  # width
