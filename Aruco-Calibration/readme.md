@@ -4,7 +4,7 @@ detect_aruco_image.py - python3 detect_aruco_image.py -t DICT_6X6_250 -i 1.jpg
 detect_aruco_video.py - python3 detect_aruco_video.py -t DICT_6X6_250
 aruco_generate.py - python3 aruco_generate.py --type DICT_6X6_250 --output /output/path --id 10
 
-detect_aruco_video.py kamera sourcesi ayarlanmali ek olarak. 
+detect_aruco_video.py kamera sourcesi ayarlanmali ek olarak. detect_aruco_video.py sadece markerlari ne kadar mesafeden detect edebiliyoruz diye test etmek icin kullandim.
 
 https://github.com/KhairulIzwan/ArUco-markers-with-OpenCV-and-Python reposundan yardim aldim.
 
