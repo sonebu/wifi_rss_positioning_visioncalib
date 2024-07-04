@@ -13,6 +13,7 @@ from PyQt5.QtWidgets import QLabel
 from PyQt5.QtCore import pyqtSignal, pyqtSlot, Qt, QThread, QRect, QPoint
 import sys, os, cv2, time
 import numpy as np
+from library.calibration_detectaruco import aruco_detect_draw, aruco_markerID_centercords
 
 calibpts   = []
 calibcords = []
@@ -37,34 +38,57 @@ class VideoThread(QThread):
         self.cv_img_memory    = None;
 
     def run(self):
+        global calibpts, calibcords, hmg_exists
         while self._run_flag:
             ret, cv_img = self.cap_obj.read()
             if ret:
                 if(state == "waiting4validframe"):
-                    self.change_pixmap_signal.emit(self.cv_img_memory)
+                    cv_img_tmp = self.cv_img_memory.copy()
+                    if(calibmode == "ArUco"):
+                        (_, _, _, _) = aruco_detect_draw(cv_img_tmp, verbose=False, draw=True)
+                        self.change_pixmap_signal.emit(cv_img_tmp)
+                    else:
+                        self.change_pixmap_signal.emit(self.cv_img_memory)
+                    time.sleep(0.1)
                 elif((state == "waiting4calib") or (state == "uncalibrated_pt")):
                     cv_img_tmp = self.cv_img_memory.copy()
-                    # frame-by-frame processing algos need to run here (e.g., aruco recog, mouse click check) 
-                    if(len(calibpts) > 0):
-                        for i, pt in enumerate(calibpts):
-                            cv_img_tmp = cv2.circle(cv_img_tmp, (int(pt.x()/cam_ratio), int(pt.y()/cam_ratio)), 10, 
-                                                            (0,255,0) if calibcords[i] is not None else (0,0,255), thickness=2, lineType=8, shift=0)
-                            cv_img_tmp = cv2.putText(cv_img_tmp, str(calibcords[i]) if calibcords[i] is not None else "enter calib coords", 
-                                                             (int(pt.x()/cam_ratio)-15, int(pt.y()/cam_ratio)-15), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0,255,0) if calibcords[i] is not None else (0,0,255), 1, cv2.LINE_AA)
-                        if(testpt is not None):
-                            cv_img_tmp = cv2.circle(cv_img_tmp, (int(testpt[0]/cam_ratio), int(testpt[1]/cam_ratio)), 10, (255,0,0), thickness=2, lineType=8, shift=0)
-                            cv_img_tmp = cv2.putText(cv_img_tmp, "("+str(testcord[0])+","+str(testcord[1])+")", (int(testpt[0]/cam_ratio)-15, int(testpt[1]/cam_ratio)-15), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255,0,0), 1, cv2.LINE_AA)
+                    if(calibmode == "Manual"):
+                        if(len(calibpts) > 0):
+                            for i, pt in enumerate(calibpts):
+                                cv_img_tmp = cv2.circle(cv_img_tmp, (int(pt.x()/cam_ratio), int(pt.y()/cam_ratio)), 10, 
+                                                                (0,255,0) if calibcords[i] is not None else (0,0,255), thickness=2, lineType=8, shift=0)
+                                cv_img_tmp = cv2.putText(cv_img_tmp, str(calibcords[i]) if calibcords[i] is not None else "enter calib coords", 
+                                                                 (int(pt.x()/cam_ratio)-15, int(pt.y()/cam_ratio)-15), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0,255,0) if calibcords[i] is not None else (0,0,255), 1, cv2.LINE_AA)
+                            if(testpt is not None):
+                                cv_img_tmp = cv2.circle(cv_img_tmp, (int(testpt[0]/cam_ratio), int(testpt[1]/cam_ratio)), 10, (255,0,0), thickness=2, lineType=8, shift=0)
+                                cv_img_tmp = cv2.putText(cv_img_tmp, "("+str(testcord[0])+","+str(testcord[1])+")", (int(testpt[0]/cam_ratio)-15, int(testpt[1]/cam_ratio)-15), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255,0,0), 1, cv2.LINE_AA)
 
+                            self.change_pixmap_signal.emit(cv_img_tmp)
+                        else:
+                            self.change_pixmap_signal.emit(self.cv_img_memory)
+                        time.sleep(0.1)
+                    elif(calibmode == "ArUco"):
+                        (aruco_centers, aruco_corners, aruco_ids, cv_img_tmp) = aruco_detect_draw(cv_img_tmp, verbose=False, draw=True)
+                        calibpts = aruco_centers
+                        aruco_marker_center_cords = []
+                        for idx in aruco_ids:
+                            aruco_marker_center_cords.append(aruco_markerID_centercords[idx][1]) # 0 is ID, 1 is x,y coordinate
+                        calibcords = aruco_marker_center_cords
+                        if(testpt is not None):
+                                cv_img_tmp = cv2.circle(cv_img_tmp, (int(testpt[0]), int(testpt[1])), 10, (0,0,255), thickness=2, lineType=8, shift=0)
+                                cv_img_tmp = cv2.putText(cv_img_tmp, "("+str(testcord[0])+","+str(testcord[1])+")", (int(testpt[0])-15, int(testpt[1])-15), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0,0,255), 1, cv2.LINE_AA)
                         self.change_pixmap_signal.emit(cv_img_tmp)
+                        time.sleep(0.1)
                     else:
                         self.change_pixmap_signal.emit(self.cv_img_memory)
                 else:
                     self.cv_img_memory = cv_img.copy();
                     if(calibmode == "ArUco"):
-                        pass # ArUco localization and rendering should come here instead, emit the rendered signal there (can be cv_img)
+                        # ArUco detection and marking on frame (feed marked image if aruco is selected)
+                        (_, _, _, cv_img) = aruco_detect_draw(cv_img, verbose=False, draw=True);
+                        self.change_pixmap_signal.emit(cv_img)
                     else:
-                        pass # this will stay --> do nothing if the mode is manual, just feed the image through to the interface
-                    self.change_pixmap_signal.emit(self.cv_img_memory)
+                        self.change_pixmap_signal.emit(self.cv_img_memory) # feed unmarked image if manual mode is selected or no mode is selected yet
 
             # time.sleep(0.1) # enable this if there's too much flicker on the GUI
 
@@ -245,14 +269,26 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             self.pushButton_6.setEnabled(False)
 
     def qpb_validframe_clicked(self):
-        global state
+        global state, calibmode, calibpts, hmg_exists
         if(state == "waiting4validframe"):
             state = "waiting4calib"
+            time.sleep(1.0) # wait for an update on the calibpts array (this is a horrible way of doing this though, we should reconsider when we have the time)
             self.pushButton_4.setEnabled(False)
             self.pushButton_5.setEnabled(False)
             self.pushButton_6.setStyleSheet('QPushButton {background-color: green;}')
             self.pushButton_6.setEnabled(False)
             cv2.imwrite(self.validated_exp_path + "/reference_image.png", self.cv_img_buffer)
+            if(calibmode == "ArUco"):
+                # enable homography calculation and testing (if possible)
+                if(len(calibpts) >= 4):
+                    self.pushButton_7.setEnabled(True) # enable homography calc
+                    if(hmg_exists):
+                        self.pushButton_8.setEnabled(True) # enable testing with current homography
+                        self.lineEdit_4.setEnabled(True)  # same as above
+                else:
+                    self.pushButton_7.setEnabled(False) # disable homography calc, not enough pts
+                    self.pushButton_8.setEnabled(False) # disable testing with current homography
+                    self.lineEdit_4.setEnabled(False)   # same as above
 
     @pyqtSlot(QPoint)
     def ql_frame_clicked(self, pointpos):
@@ -268,7 +304,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         else:
             if(state == "waiting4calib"):
                 pass 
-                # aruco handling mechanism should come here
+                ### Dropped functionality:
                 # looks at aruco tag locations and chooses closest aruco tag based on clicked location
                 # the chosen aruco tag becomes a new calibpt-calibcord duo, uncalibrated
                 # the calibration mechanism follows the same path as the manual from hereon
@@ -279,7 +315,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
                 pass # do nothing if the state is not right
 
     def qpb_calibsubmit_clicked(self):
-        global calibcords, state, hmg_exists
+        global calibcords, state, hmg_exists, testpt, testcord
         if((state == "waiting4calib") or (state == "uncalibrated_pt")):
             if(len(calibpts)>0):
                 submitted_tuple_aslist = self.lineEdit_3.text().replace("(","").replace(")","").split(",")
@@ -295,16 +331,16 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
                         self.pushButton_7.setEnabled(True) # enable homography calc
                         if(hmg_exists):
                             self.pushButton_8.setEnabled(True) # enable testing with current homography
-                            self.lineEdit_4.setEnabled(True)  # ""
+                            self.lineEdit_4.setEnabled(True)   # same as above
                     else:
                         self.pushButton_7.setEnabled(False) # disable homography calc, not enough pts
                         self.pushButton_8.setEnabled(False) # disable testing with current homography
-                        self.lineEdit_4.setEnabled(False)   # ""
+                        self.lineEdit_4.setEnabled(False)   # same as above
                         testpt = None
                         testcord = None
 
     def qpb_calibdelete_clicked(self):
-        global calibpts, calibcords, state, hmg_exists
+        global calibpts, calibcords, state, hmg_exists, testpt, testcord
         if((state == "waiting4calib") or (state == "uncalibrated_pt")):
             if(len(calibpts)>0):
                 calibpts.pop() # delete last element
@@ -321,21 +357,21 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
                     self.pushButton_7.setEnabled(True) # enable homography calc
                     if(hmg_exists):
                         self.pushButton_8.setEnabled(True) # enable testing with current homography
-                        self.lineEdit_4.setEnabled(True)  # ""
+                        self.lineEdit_4.setEnabled(True)  # same as above
                 else:
                     self.pushButton_7.setEnabled(False) # disable homography calc, not enough pts
                     self.pushButton_8.setEnabled(False) # disable testing with current homography
-                    self.lineEdit_4.setEnabled(False)   # ""
+                    self.lineEdit_4.setEnabled(False)   # same as above
                     testpt = None
                     testcord = None
 
     def qpb_gethomography_clicked(self):
-        global calibpts, calibcords, hmg_mtx, hmg_exists
+        global calibpts, calibcords, calibmode, hmg_mtx, hmg_exists
         # assume that the other buttons track the state of this guy
         pts_arr = np.zeros((len(calibpts),2))
         for i, qpt in enumerate(calibpts):
-            pts_arr[i,0] = qpt.x()
-            pts_arr[i,1] = qpt.y()
+            pts_arr[i,0] = qpt.x() if calibmode == "Manual" else qpt[0]
+            pts_arr[i,1] = qpt.y() if calibmode == "Manual" else qpt[1]
         crd_arr = np.zeros((len(calibpts),2))
         for i, qcr in enumerate(calibcords):
             crd_arr[i,0] = qcr[0]
@@ -352,10 +388,10 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         if(len(calibpts) >= 4):
             if(hmg_exists):
                 self.pushButton_8.setEnabled(True) # enable testing with current homography
-                self.lineEdit_4.setEnabled(True)  # ""
+                self.lineEdit_4.setEnabled(True)  # same as above
         else:
             self.pushButton_8.setEnabled(False) # disable testing with current homography
-            self.lineEdit_4.setEnabled(False)   # ""
+            self.lineEdit_4.setEnabled(False)   # same as above
 
     def qpb_testptsubmit_clicked(self):
         global hmg_mtx, testpt, testcord
