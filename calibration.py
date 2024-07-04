@@ -1,8 +1,10 @@
 ################################
 ### Calibration PyQt5 GUI
+###
+### Valid states: enter_exp, enter_devstring, select_mode, frame_selection, waiting4validframe, waiting4calib, uncalibrated_pt
 
 ### The layout is designed in Qt5 Designer 5.15, the class definition is imported from there 
-from lib.calibration_qt5designer import Ui_MainWindow
+from library.calibration_qt5designer import Ui_MainWindow
 
 ### Functional part of the Calibration GUI is in this file (actions, state machine etc.)
 from PyQt5 import QtWidgets, QtGui
@@ -19,6 +21,7 @@ testcord   = None
 calibmode  = None # will hold "ArUco" or "Manual"
 state      = None # will be initialized inside MainWindow init
 hmg_mtx    = None # homography matrix
+hmg_exists = False # flag denoting whether a computed homography matrix exists at any given moment
 cam_res    = (640,480)
 cam_ratio  = float(min((1280,720)))/min(cam_res)
 itf_size   = tuple([int(x*cam_ratio) for x in cam_res])
@@ -192,6 +195,8 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             self.label_2.setText("<font color='green'>Cam opened, streaming</font>")
             self.lineEdit_2.setEnabled(False);
             self.lineEdit_2.setStyleSheet("QLineEdit { background-color: gray; font-weight: bold}")
+            with open(self.validated_exp_path + "/devstring.txt","w") as f:
+                f.write(self.lineEdit_2.text())
             global state
             state = "select_mode"
             cap.set(3, cam_res[0])  # width
@@ -274,7 +279,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
                 pass # do nothing if the state is not right
 
     def qpb_calibsubmit_clicked(self):
-        global calibcords, state
+        global calibcords, state, hmg_exists
         if((state == "waiting4calib") or (state == "uncalibrated_pt")):
             if(len(calibpts)>0):
                 submitted_tuple_aslist = self.lineEdit_3.text().replace("(","").replace(")","").split(",")
@@ -288,8 +293,9 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
                     state = "waiting4calib"
                     if(len(calibpts) >= 4):
                         self.pushButton_7.setEnabled(True) # enable homography calc
-                        self.pushButton_8.setEnabled(True) # enable testing with current homography
-                        self.lineEdit_4.setEnabled(True)  # ""
+                        if(hmg_exists):
+                            self.pushButton_8.setEnabled(True) # enable testing with current homography
+                            self.lineEdit_4.setEnabled(True)  # ""
                     else:
                         self.pushButton_7.setEnabled(False) # disable homography calc, not enough pts
                         self.pushButton_8.setEnabled(False) # disable testing with current homography
@@ -298,7 +304,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
                         testcord = None
 
     def qpb_calibdelete_clicked(self):
-        global calibpts, calibcords, state
+        global calibpts, calibcords, state, hmg_exists
         if((state == "waiting4calib") or (state == "uncalibrated_pt")):
             if(len(calibpts)>0):
                 calibpts.pop() # delete last element
@@ -313,8 +319,9 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
                     state = "uncalibrated_pt"
                 if(len(calibpts) >= 4):
                     self.pushButton_7.setEnabled(True) # enable homography calc
-                    self.pushButton_8.setEnabled(True) # enable testing with current homography
-                    self.lineEdit_4.setEnabled(True)  # ""
+                    if(hmg_exists):
+                        self.pushButton_8.setEnabled(True) # enable testing with current homography
+                        self.lineEdit_4.setEnabled(True)  # ""
                 else:
                     self.pushButton_7.setEnabled(False) # disable homography calc, not enough pts
                     self.pushButton_8.setEnabled(False) # disable testing with current homography
@@ -323,7 +330,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
                     testcord = None
 
     def qpb_gethomography_clicked(self):
-        global calibpts, calibcords, hmg_mtx
+        global calibpts, calibcords, hmg_mtx, hmg_exists
         # assume that the other buttons track the state of this guy
         pts_arr = np.zeros((len(calibpts),2))
         for i, qpt in enumerate(calibpts):
@@ -341,6 +348,14 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         print("Homography Matrix:")
         print(hmg_mtx)
         print("")
+        hmg_exists = True
+        if(len(calibpts) >= 4):
+            if(hmg_exists):
+                self.pushButton_8.setEnabled(True) # enable testing with current homography
+                self.lineEdit_4.setEnabled(True)  # ""
+        else:
+            self.pushButton_8.setEnabled(False) # disable testing with current homography
+            self.lineEdit_4.setEnabled(False)   # ""
 
     def qpb_testptsubmit_clicked(self):
         global hmg_mtx, testpt, testcord
