@@ -1,0 +1,11 @@
+something around the lines of:
+
+#!/usr/bin/env python
+
+import cv2, argparse
+import numpy as np
+
+arucoDict = cv2.aruco.getPredefinedDictionary(cv2.aruco.DICT_ARUCO_MIP_36h12)
+tag = np.zeros((300, 300, 1), dtype="uint8")
+cv2.aruco.generateImageMarker(arucoDict, 0, 300, tag, 1)
+cv2.imwrite("out.png", tag)
