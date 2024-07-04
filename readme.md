@@ -28,7 +28,7 @@ Each experiment has a "data package" associated with it. The data package contai
 
 Different algorithms can be developed for and demonstrated on that data package.
 
-![System Diagram](docs/drawings/system.png)
+![System Diagram](documentation/drawings/system.png)
 
 
 ---
