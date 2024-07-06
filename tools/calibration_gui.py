@@ -1,8 +1,10 @@
 ################################
 ### Calibration PyQt5 GUI
+###
+### Valid states: enter_exp, enter_devstring, select_mode, frame_selection, waiting4validframe, waiting4calib, uncalibrated_pt
 
 ### The layout is designed in Qt5 Designer 5.15, the class definition is imported from there 
-from lib.calibration_qt5designer import Ui_MainWindow
+from calibration_gui_qt5designer import Ui_MainWindow
 
 ### Functional part of the Calibration GUI is in this file (actions, state machine etc.)
 from PyQt5 import QtWidgets, QtGui
@@ -11,6 +13,7 @@ from PyQt5.QtWidgets import QLabel
 from PyQt5.QtCore import pyqtSignal, pyqtSlot, Qt, QThread, QRect, QPoint
 import sys, os, cv2, time
 import numpy as np
+from calibration_gui_detectaruco import aruco_detect_draw, aruco_markerID_centercords
 
 calibpts   = []
 calibcords = []
@@ -19,9 +22,14 @@ testcord   = None
 calibmode  = None # will hold "ArUco" or "Manual"
 state      = None # will be initialized inside MainWindow init
 hmg_mtx    = None # homography matrix
-cam_res    = (640,480)
-cam_ratio  = float(min((1280,720)))/min(cam_res)
-itf_size   = tuple([int(x*cam_ratio) for x in cam_res])
+hmg_exists = False # flag denoting whether a computed homography matrix exists at any given moment
+
+### The interface has a fixed size 1280x720 video window
+### The desired cam resolution (if it matches the real output the camera can provide) will be resized to that without aspect ratio distortion
+### You need to check the available camera formats, choose a backend and a fourcc format string 
+desired_cam_res     = (1280,720)
+desired_cam_backend = cv2.CAP_V4L2
+desired_cam_fmt     = cv2.VideoWriter_fourcc('M', 'J', 'P', 'G')
 
 # adapted from: https://gist.github.com/docPhil99/ca4da12c9d6f29b9cea137b617c7b8b1
 class VideoThread(QThread):
@@ -34,34 +42,57 @@ class VideoThread(QThread):
         self.cv_img_memory    = None;
 
     def run(self):
+        global calibpts, calibcords, hmg_exists, cam_ratio
         while self._run_flag:
             ret, cv_img = self.cap_obj.read()
             if ret:
                 if(state == "waiting4validframe"):
-                    self.change_pixmap_signal.emit(self.cv_img_memory)
+                    cv_img_tmp = self.cv_img_memory.copy()
+                    if(calibmode == "ArUco"):
+                        (_, _, _, _) = aruco_detect_draw(cv_img_tmp, verbose=False, draw=True)
+                        self.change_pixmap_signal.emit(cv_img_tmp)
+                    else:
+                        self.change_pixmap_signal.emit(self.cv_img_memory)
+                    time.sleep(0.1)
                 elif((state == "waiting4calib") or (state == "uncalibrated_pt")):
                     cv_img_tmp = self.cv_img_memory.copy()
-                    # frame-by-frame processing algos need to run here (e.g., aruco recog, mouse click check) 
-                    if(len(calibpts) > 0):
-                        for i, pt in enumerate(calibpts):
-                            cv_img_tmp = cv2.circle(cv_img_tmp, (int(pt.x()/cam_ratio), int(pt.y()/cam_ratio)), 10, 
-                                                            (0,255,0) if calibcords[i] is not None else (0,0,255), thickness=2, lineType=8, shift=0)
-                            cv_img_tmp = cv2.putText(cv_img_tmp, str(calibcords[i]) if calibcords[i] is not None else "enter calib coords", 
-                                                             (int(pt.x()/cam_ratio)-15, int(pt.y()/cam_ratio)-15), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0,255,0) if calibcords[i] is not None else (0,0,255), 1, cv2.LINE_AA)
-                        if(testpt is not None):
-                            cv_img_tmp = cv2.circle(cv_img_tmp, (int(testpt[0]/cam_ratio), int(testpt[1]/cam_ratio)), 10, (255,0,0), thickness=2, lineType=8, shift=0)
-                            cv_img_tmp = cv2.putText(cv_img_tmp, "("+str(testcord[0])+","+str(testcord[1])+")", (int(testpt[0]/cam_ratio)-15, int(testpt[1]/cam_ratio)-15), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255,0,0), 1, cv2.LINE_AA)
+                    if(calibmode == "Manual"):
+                        if(len(calibpts) > 0):
+                            for i, pt in enumerate(calibpts):
+                                cv_img_tmp = cv2.circle(cv_img_tmp, (int(pt.x()/cam_ratio), int(pt.y()/cam_ratio)), 10, 
+                                                                (0,255,0) if calibcords[i] is not None else (0,0,255), thickness=2, lineType=8, shift=0)
+                                cv_img_tmp = cv2.putText(cv_img_tmp, str(calibcords[i]) if calibcords[i] is not None else "enter calib coords", 
+                                                                 (int(pt.x()/cam_ratio)-15, int(pt.y()/cam_ratio)-15), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0,255,0) if calibcords[i] is not None else (0,0,255), 1, cv2.LINE_AA)
+                            if(testpt is not None):
+                                cv_img_tmp = cv2.circle(cv_img_tmp, (int(testpt[0]/cam_ratio), int(testpt[1]/cam_ratio)), 10, (255,0,0), thickness=2, lineType=8, shift=0)
+                                cv_img_tmp = cv2.putText(cv_img_tmp, "("+str(testcord[0])+","+str(testcord[1])+")", (int(testpt[0]/cam_ratio)-15, int(testpt[1]/cam_ratio)-15), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255,0,0), 1, cv2.LINE_AA)
 
+                            self.change_pixmap_signal.emit(cv_img_tmp)
+                        else:
+                            self.change_pixmap_signal.emit(self.cv_img_memory)
+                        time.sleep(0.1)
+                    elif(calibmode == "ArUco"):
+                        (aruco_centers, aruco_corners, aruco_ids, cv_img_tmp) = aruco_detect_draw(cv_img_tmp, verbose=False, draw=True)
+                        calibpts = aruco_centers
+                        aruco_marker_center_cords = []
+                        for idx in aruco_ids:
+                            aruco_marker_center_cords.append(aruco_markerID_centercords[idx][1]) # 0 is ID, 1 is x,y coordinate
+                        calibcords = aruco_marker_center_cords
+                        if(testpt is not None):
+                                cv_img_tmp = cv2.circle(cv_img_tmp, (int(testpt[0]), int(testpt[1])), 10, (0,0,255), thickness=2, lineType=8, shift=0)
+                                cv_img_tmp = cv2.putText(cv_img_tmp, "("+str(testcord[0])+","+str(testcord[1])+")", (int(testpt[0])-15, int(testpt[1])-15), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0,0,255), 1, cv2.LINE_AA)
                         self.change_pixmap_signal.emit(cv_img_tmp)
+                        time.sleep(0.1)
                     else:
                         self.change_pixmap_signal.emit(self.cv_img_memory)
                 else:
                     self.cv_img_memory = cv_img.copy();
                     if(calibmode == "ArUco"):
-                        pass # ArUco localization and rendering should come here instead, emit the rendered signal there (can be cv_img)
+                        # ArUco detection and marking on frame (feed marked image if aruco is selected)
+                        (_, _, _, cv_img) = aruco_detect_draw(cv_img, verbose=False, draw=True);
+                        self.change_pixmap_signal.emit(cv_img)
                     else:
-                        pass # this will stay --> do nothing if the mode is manual, just feed the image through to the interface
-                    self.change_pixmap_signal.emit(self.cv_img_memory)
+                        self.change_pixmap_signal.emit(self.cv_img_memory) # feed unmarked image if manual mode is selected or no mode is selected yet
 
             # time.sleep(0.1) # enable this if there's too much flicker on the GUI
 
@@ -157,11 +188,11 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
                 return # dummy return to get out of the function
 
         # check if the submitted experiment foldername exists already
-        if(os.path.isdir("experiments/" + submitted_exp_name)):
+        if(os.path.isdir("../experiments/" + submitted_exp_name)):
             self.label.setText("<font color='red'>Exp exists, cant overwrite</font>") 
             return # dummy return to get out of the function
         else:
-            self.validated_exp_path = "experiments/" + submitted_exp_name
+            self.validated_exp_path = "../experiments/" + submitted_exp_name
             os.mkdir(self.validated_exp_path)
             # continue, this part is done
             self.label.setText("<font color='green'>Created exp with submitted name</font>")
@@ -192,10 +223,20 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             self.label_2.setText("<font color='green'>Cam opened, streaming</font>")
             self.lineEdit_2.setEnabled(False);
             self.lineEdit_2.setStyleSheet("QLineEdit { background-color: gray; font-weight: bold}")
+            #############################################################################################
+            cap.open(0, apiPreference=desired_cam_backend)
+            cap.set(cv2.CAP_PROP_FOURCC, desired_cam_fmt)
+            cap.set(cv2.CAP_PROP_FRAME_WIDTH, desired_cam_res[0])
+            cap.set(cv2.CAP_PROP_FRAME_HEIGHT, desired_cam_res[1])
+            actual_cam_res = (int(cap.get(cv2.CAP_PROP_FRAME_WIDTH)),int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT)))
+            global cam_ratio
+            cam_ratio  = float(min((1280,720)))/min(actual_cam_res) # 1280x720 is the interface size
+            with open(self.validated_exp_path + "/devstring.txt","w") as f:
+                f.write(self.lineEdit_2.text()+"\n")
+                f.write(str(actual_cam_res[0])+"\n")
+                f.write(str(actual_cam_res[1]))
             global state
             state = "select_mode"
-            cap.set(3, cam_res[0])  # width
-            cap.set(4, cam_res[1])   # height
             self.cv2thread = VideoThread(cap)
             self.cv2thread.change_pixmap_signal.connect(self.update_image)
             self.cv2thread.start();
@@ -240,14 +281,26 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             self.pushButton_6.setEnabled(False)
 
     def qpb_validframe_clicked(self):
-        global state
+        global state, calibmode, calibpts, hmg_exists
         if(state == "waiting4validframe"):
             state = "waiting4calib"
+            time.sleep(1.0) # wait for an update on the calibpts array (this is a horrible way of doing this though, we should reconsider when we have the time)
             self.pushButton_4.setEnabled(False)
             self.pushButton_5.setEnabled(False)
             self.pushButton_6.setStyleSheet('QPushButton {background-color: green;}')
             self.pushButton_6.setEnabled(False)
             cv2.imwrite(self.validated_exp_path + "/reference_image.png", self.cv_img_buffer)
+            if(calibmode == "ArUco"):
+                # enable homography calculation and testing (if possible)
+                if(len(calibpts) >= 4):
+                    self.pushButton_7.setEnabled(True) # enable homography calc
+                    if(hmg_exists):
+                        self.pushButton_8.setEnabled(True) # enable testing with current homography
+                        self.lineEdit_4.setEnabled(True)  # same as above
+                else:
+                    self.pushButton_7.setEnabled(False) # disable homography calc, not enough pts
+                    self.pushButton_8.setEnabled(False) # disable testing with current homography
+                    self.lineEdit_4.setEnabled(False)   # same as above
 
     @pyqtSlot(QPoint)
     def ql_frame_clicked(self, pointpos):
@@ -263,7 +316,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         else:
             if(state == "waiting4calib"):
                 pass 
-                # aruco handling mechanism should come here
+                ### Dropped functionality:
                 # looks at aruco tag locations and chooses closest aruco tag based on clicked location
                 # the chosen aruco tag becomes a new calibpt-calibcord duo, uncalibrated
                 # the calibration mechanism follows the same path as the manual from hereon
@@ -274,7 +327,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
                 pass # do nothing if the state is not right
 
     def qpb_calibsubmit_clicked(self):
-        global calibcords, state
+        global calibcords, state, hmg_exists, testpt, testcord
         if((state == "waiting4calib") or (state == "uncalibrated_pt")):
             if(len(calibpts)>0):
                 submitted_tuple_aslist = self.lineEdit_3.text().replace("(","").replace(")","").split(",")
@@ -288,17 +341,18 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
                     state = "waiting4calib"
                     if(len(calibpts) >= 4):
                         self.pushButton_7.setEnabled(True) # enable homography calc
-                        self.pushButton_8.setEnabled(True) # enable testing with current homography
-                        self.lineEdit_4.setEnabled(True)  # ""
+                        if(hmg_exists):
+                            self.pushButton_8.setEnabled(True) # enable testing with current homography
+                            self.lineEdit_4.setEnabled(True)   # same as above
                     else:
                         self.pushButton_7.setEnabled(False) # disable homography calc, not enough pts
                         self.pushButton_8.setEnabled(False) # disable testing with current homography
-                        self.lineEdit_4.setEnabled(False)   # ""
+                        self.lineEdit_4.setEnabled(False)   # same as above
                         testpt = None
                         testcord = None
 
     def qpb_calibdelete_clicked(self):
-        global calibpts, calibcords, state
+        global calibpts, calibcords, state, hmg_exists, testpt, testcord
         if((state == "waiting4calib") or (state == "uncalibrated_pt")):
             if(len(calibpts)>0):
                 calibpts.pop() # delete last element
@@ -313,22 +367,23 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
                     state = "uncalibrated_pt"
                 if(len(calibpts) >= 4):
                     self.pushButton_7.setEnabled(True) # enable homography calc
-                    self.pushButton_8.setEnabled(True) # enable testing with current homography
-                    self.lineEdit_4.setEnabled(True)  # ""
+                    if(hmg_exists):
+                        self.pushButton_8.setEnabled(True) # enable testing with current homography
+                        self.lineEdit_4.setEnabled(True)  # same as above
                 else:
                     self.pushButton_7.setEnabled(False) # disable homography calc, not enough pts
                     self.pushButton_8.setEnabled(False) # disable testing with current homography
-                    self.lineEdit_4.setEnabled(False)   # ""
+                    self.lineEdit_4.setEnabled(False)   # same as above
                     testpt = None
                     testcord = None
 
     def qpb_gethomography_clicked(self):
-        global calibpts, calibcords, hmg_mtx
+        global calibpts, calibcords, calibmode, hmg_mtx, hmg_exists
         # assume that the other buttons track the state of this guy
         pts_arr = np.zeros((len(calibpts),2))
         for i, qpt in enumerate(calibpts):
-            pts_arr[i,0] = qpt.x()
-            pts_arr[i,1] = qpt.y()
+            pts_arr[i,0] = qpt.x() if calibmode == "Manual" else qpt[0]
+            pts_arr[i,1] = qpt.y() if calibmode == "Manual" else qpt[1]
         crd_arr = np.zeros((len(calibpts),2))
         for i, qcr in enumerate(calibcords):
             crd_arr[i,0] = qcr[0]
@@ -341,6 +396,14 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         print("Homography Matrix:")
         print(hmg_mtx)
         print("")
+        hmg_exists = True
+        if(len(calibpts) >= 4):
+            if(hmg_exists):
+                self.pushButton_8.setEnabled(True) # enable testing with current homography
+                self.lineEdit_4.setEnabled(True)  # same as above
+        else:
+            self.pushButton_8.setEnabled(False) # disable testing with current homography
+            self.lineEdit_4.setEnabled(False)   # same as above
 
     def qpb_testptsubmit_clicked(self):
         global hmg_mtx, testpt, testcord
