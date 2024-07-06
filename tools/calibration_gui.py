@@ -4,7 +4,7 @@
 ### Valid states: enter_exp, enter_devstring, select_mode, frame_selection, waiting4validframe, waiting4calib, uncalibrated_pt
 
 ### The layout is designed in Qt5 Designer 5.15, the class definition is imported from there 
-from library.calibration_qt5designer import Ui_MainWindow
+from calibration_gui_qt5designer import Ui_MainWindow
 
 ### Functional part of the Calibration GUI is in this file (actions, state machine etc.)
 from PyQt5 import QtWidgets, QtGui
@@ -13,7 +13,7 @@ from PyQt5.QtWidgets import QLabel
 from PyQt5.QtCore import pyqtSignal, pyqtSlot, Qt, QThread, QRect, QPoint
 import sys, os, cv2, time
 import numpy as np
-from library.calibration_detectaruco import aruco_detect_draw, aruco_markerID_centercords
+from calibration_gui_detectaruco import aruco_detect_draw, aruco_markerID_centercords
 
 calibpts   = []
 calibcords = []
@@ -23,9 +23,13 @@ calibmode  = None # will hold "ArUco" or "Manual"
 state      = None # will be initialized inside MainWindow init
 hmg_mtx    = None # homography matrix
 hmg_exists = False # flag denoting whether a computed homography matrix exists at any given moment
-cam_res    = (640,480)
-cam_ratio  = float(min((1280,720)))/min(cam_res)
-itf_size   = tuple([int(x*cam_ratio) for x in cam_res])
+
+### The interface has a fixed size 1280x720 video window
+### The desired cam resolution (if it matches the real output the camera can provide) will be resized to that without aspect ratio distortion
+### You need to check the available camera formats, choose a backend and a fourcc format string 
+desired_cam_res     = (1280,720)
+desired_cam_backend = cv2.CAP_V4L2
+desired_cam_fmt     = cv2.VideoWriter_fourcc('M', 'J', 'P', 'G')
 
 # adapted from: https://gist.github.com/docPhil99/ca4da12c9d6f29b9cea137b617c7b8b1
 class VideoThread(QThread):
@@ -38,7 +42,7 @@ class VideoThread(QThread):
         self.cv_img_memory    = None;
 
     def run(self):
-        global calibpts, calibcords, hmg_exists
+        global calibpts, calibcords, hmg_exists, cam_ratio
         while self._run_flag:
             ret, cv_img = self.cap_obj.read()
             if ret:
@@ -184,11 +188,11 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
                 return # dummy return to get out of the function
 
         # check if the submitted experiment foldername exists already
-        if(os.path.isdir("experiments/" + submitted_exp_name)):
+        if(os.path.isdir("../experiments/" + submitted_exp_name)):
             self.label.setText("<font color='red'>Exp exists, cant overwrite</font>") 
             return # dummy return to get out of the function
         else:
-            self.validated_exp_path = "experiments/" + submitted_exp_name
+            self.validated_exp_path = "../experiments/" + submitted_exp_name
             os.mkdir(self.validated_exp_path)
             # continue, this part is done
             self.label.setText("<font color='green'>Created exp with submitted name</font>")
@@ -219,12 +223,20 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             self.label_2.setText("<font color='green'>Cam opened, streaming</font>")
             self.lineEdit_2.setEnabled(False);
             self.lineEdit_2.setStyleSheet("QLineEdit { background-color: gray; font-weight: bold}")
+            #############################################################################################
+            cap.open(0, apiPreference=desired_cam_backend)
+            cap.set(cv2.CAP_PROP_FOURCC, desired_cam_fmt)
+            cap.set(cv2.CAP_PROP_FRAME_WIDTH, desired_cam_res[0])
+            cap.set(cv2.CAP_PROP_FRAME_HEIGHT, desired_cam_res[1])
+            actual_cam_res = (int(cap.get(cv2.CAP_PROP_FRAME_WIDTH)),int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT)))
+            global cam_ratio
+            cam_ratio  = float(min((1280,720)))/min(actual_cam_res) # 1280x720 is the interface size
             with open(self.validated_exp_path + "/devstring.txt","w") as f:
-                f.write(self.lineEdit_2.text())
+                f.write(self.lineEdit_2.text()+"\n")
+                f.write(str(actual_cam_res[0])+"\n")
+                f.write(str(actual_cam_res[1]))
             global state
             state = "select_mode"
-            cap.set(3, cam_res[0])  # width
-            cap.set(4, cam_res[1])   # height
             self.cv2thread = VideoThread(cap)
             self.cv2thread.change_pixmap_signal.connect(self.update_image)
             self.cv2thread.start();

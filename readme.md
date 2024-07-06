@@ -5,15 +5,11 @@ Benchmarking and developing no-reference RSS-based indoor positioning systems (i
 --- 
 ## Description
 
-An experiment requires 2 computers (not necessarily 2 people): a "Location Logger" (cLL) and an "RSS logger" (cRS). 4 stages are considered in an experiment:
+An "experiment" requires 2 computers (not necessarily 2 people): a Location Logger (cLL) and an RSS logger (cRS). 2 stages are considered in an experiment:
 
-**1- Calibration:** Use "calibration.py" to set up a fixed camera on cLL, get a reference image + a homography matrix over known calibration points in that image (manual / ArUco). cRS is not involved in this step. The camera should not move after this step to keep the homography matrix applicable throughout the experiment.
+**Calibration:** Use "calibration.py" to set up a fixed camera on cLL, get a reference image + a homography matrix over known calibration points in that image (manual / ArUco). cRS is not involved in this step. The camera should not move after this step to keep the homography matrix applicable throughout the experiment.
 
-**2- Data Collection:** Needs to run simultaneously on cLL and cRS ("datacollection_loc.py" and "datacollection_rss.py"), synced with timestamps (clock sync over NTP before running). cRS is carried by a person who moves around and runs tshark to log RSS values. cLL is stationary, and runs a person tracking model (w.r.t. ground w/ homography) to get {loc_x, loc_y, RSS values}. Results for loc and rss get merged after the exp using "datacollection_merge.py".
-
-**3- Development:** Training and evaluating neural net based algorithms, dictionary selection for non parametric algorithms (e.g., nearest neighbour (NeNe), NeNe+interp etc.). The code used in this stage is custom, we save it into the experiment folder.
-
-**4- Demo:** Runs on the cRS with a real-time data stream. A GUI shows realtime updates overlaid on the reference image taken during the calibration step.
+**Data Collection:** Needs to run simultaneously on cLL and cRS ("datacollection_loc.py" and "datacollection_rss.py"), synced with timestamps (clock sync over NTP before running). cRS is carried by a person who moves around and runs tshark to log RSS values. cLL is stationary, and runs a person tracking model (w.r.t. ground w/ homography) to get {loc_x, loc_y} values. Results for loc and RSS get merged after the exp using "datacollection_merge.py" to get labeled tuples of {loc_x, loc_y, RSS}. We don't filter out any WiFi message at the collection phase, algorithms decide which data points to use.
 
 Each experiment has a "data package" associated with it. The data package contains:
 
@@ -26,10 +22,13 @@ Each experiment has a "data package" associated with it. The data package contai
 - **"loc_xy.txt"**: raw loc_x/loc_y log for the experiment (collected by CLL, containing ground truth location data)
 - **"data.json"**: merged RSS + camera-based loc_x/loc_y data, no new data on top of tshark.txt + loc_xy.txt
 
-Different algorithms can be developed for and demonstrated on that data package.
+**Development:** Once an experiment is done, an algorithm can be developed based on that data (stage 3). This pertains to training and evaluating neural net based algorithms, dictionary selection for non parametric algorithms (e.g., nearest neighbour (NeNe), NeNe+interp etc.) etc. The code used in this stage is custom, we save it into the development folder. The sub-components reside in py files and tests with result graphs etc. reside on jupyter notebooks. This development folder has no live test mechanism, basically only datasets generated in the experiments/ folder can be used.
+
+**Demo:** For developed algorithms that are ready for a live demo, we have the demo.py file at the top level. That basically runs on the cRS with a real-time data stream, predicting position based on RSS values (stage 4). The GUI shows realtime updates overlaid on the reference image taken during the calibration step.
+
+This 4-stage system is depicted below:
 
 ![System Diagram](documentation/drawings/system.png)
-
 
 ---
 
