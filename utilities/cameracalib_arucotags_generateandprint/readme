@@ -1,11 +1,1 @@
-something around the lines of:
-
-#!/usr/bin/env python
-
-import cv2, argparse
-import numpy as np
-
-arucoDict = cv2.aruco.getPredefinedDictionary(cv2.aruco.DICT_ARUCO_MIP_36h12)
-tag = np.zeros((300, 300, 1), dtype="uint8")
-cv2.aruco.generateImageMarker(arucoDict, 0, 300, tag, 1)
-cv2.imwrite("out.png", tag)
+To generate Aruco tags, the aruco_generate.py script can be executed. When the script is run, it generates Aruco tags and a DOCX file that contains all the generated Aruco tags with the specified size. The dictionary, size and this kind of informations that belongs to the tag is hard-coded within the script. The most suitable dictionary for our purpose has been selected, and the IDs have been chosen from 0 to 16. To use the Aruco tags in the real world, they need to be printed. The printed tags are set to have equal sizes, each being 19 centimeters. The tags can be printed using aruco.docx and aruco.pdf. If a specific tag needs to be printed, the corresponding page (tag ID + 1) can be printed.
