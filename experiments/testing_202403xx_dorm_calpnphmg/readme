@@ -1,1 +1,3 @@
+reference image does not exist in a form that can be used for re-calibration
+
 Model_localize.py demoda kullandigimiz yurt girisinde anlik konumu gosteren yanip sonen noktayi gostermek icin var model.pth ile birlikte calisiyor. Bitirme videosunu cekebilmek icin yapmistik.
