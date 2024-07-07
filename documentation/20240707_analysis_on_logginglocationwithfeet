@@ -1,0 +1,12 @@
+https://www.frontiersin.org/journals/neurology/articles/10.3389/fneur.2019.00999/full
+
+it seems like the human CoM deviates by 10cm during walking, our task is somewhat analogous to estimating the CoM of a person that is carrying the device
+
+https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4342886/#:~:text=Normal%20healthy%20walking%20is%20symmetric,and%20external%20ground%20reaction%20forces.
+
+in a healthy gait (walking only), we always have the two feet at symmetrical distance, so their average would give us the closest projection of the human to the ground while walking
+
+this can be improved later on, but it seems like the following would work up to approx 10cm of error:
+- the walker should walk with arms by the side (or holding the laptop / phone etc.)
+- if the two feet are visible we should take their average as the position
+- if the two feet arent visible, we take the bottom midpoint of the BB as the position

@@ -1,4 +1,5 @@
 import cv2 
+import numpy as np
 
 # to label the markers on the video frames
 colors = [(255, 0, 0),  # Blue topLeft
@@ -59,13 +60,22 @@ arucoDetector = cv2.aruco.ArucoDetector(arucoDict, arucoParams)
 def aruco_detect_draw(frame, verbose=False, draw=True):
 	aruco_out = arucoDetector.detectMarkers(frame)
 
-	(corners, ids, rejected) = aruco_out
+	(corners_raw, ids_raw, rejected) = aruco_out
 	centers = []
+	corners = []
+	ids     = []
 	# verify *at least* one ArUco marker was detected
-	if len(corners) > 0:
+	if len(corners_raw) > 0:
 		# flatten the ArUco IDs list
-		ids = ids.flatten()
+		ids_raw = ids_raw.flatten()
 
+		# filter out irrelevant IDs (0-16 is for calibration, 17 is for person tagging)
+		for ii, _ in enumerate(corners_raw):
+			if(ids_raw[ii] <= 17):
+				ids.append(ids_raw[ii])
+				corners.append(corners_raw[ii])
+
+		ids = np.array(ids)
 		# loop over the detected ArUCo corners
 		for (markerCorner, markerID) in zip(corners, ids):
 			if(draw):

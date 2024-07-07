@@ -9,12 +9,12 @@ An "experiment" requires 2 computers (not necessarily 2 people): a Location Logg
 
 **Calibration:** Use "calibration.py" to set up a fixed camera on cLL, get a reference image + a homography matrix over known calibration points in that image (manual / ArUco). cRS is not involved in this step. The camera should not move after this step to keep the homography matrix applicable throughout the experiment.
 
-**Data Collection:** Needs to run simultaneously on cLL and cRS ("datacollection_loc.py" and "datacollection_rss.py"), synced with timestamps (clock sync over NTP before running). cRS is carried by a person who moves around and runs tshark to log RSS values. cLL is stationary, and runs a person tracking model (w.r.t. ground w/ homography) to get {loc_x, loc_y} values. Results for loc and RSS get merged after the exp using "datacollection_merge.py" to get labeled tuples of {loc_x, loc_y, RSS}. We don't filter out any WiFi message at the collection phase, algorithms decide which data points to use.
+**Data Collection:** Needs to run simultaneously on cLL and cRS ("datacollection_loc.py" and "datacollection_rss.py"), synced with timestamps (clock sync over NTP before running). cRS is carried by a person who moves around and runs tshark to log RSS values. This person will wear printed versions of a certain aruco tag to be identified from within a crowd. cLL is stationary, and runs a person tracking model (w.r.t. ground w/ homography) to get {loc_x, loc_y} values. Results for loc and RSS get merged after the exp using "datacollection_merge.py" to get labeled tuples of {loc_x, loc_y, RSS}. We don't filter out any WiFi message at the collection phase, algorithms decide which data points to use.
 
 Each experiment has a "data package" associated with it. The data package contains:
 
-- **"devstring.txt"**: the devstring of the camera used during the calibration stage
-- **"reference_image.png"**: a reference image from the camera
+- **"devstring.txt"**: the devstring of the camera used during the calibration stage + realized cam width and height (not desired, realized) 
+- **"reference_image.png"**: reference image from the stationary camera
 - **"reference_image_withHomographyAnchors.png"**: a version of the reference_image showing the anchors used for obtaining the homography matrix
 - **"homography_matrix.npy/txt"**: the homography matrix, saved as both a loadable file as well as a human-readable file
 - **"wifi_chconfig.sh"**: runnable wifi channel config script (hardcode any arguments in the script such that "bash wifi_chconfig.sh" works). This can simply select 1 channel, or hop between channels (modified version the utils/wifi_channel_hopping/chanhop_original.sh  
@@ -33,6 +33,8 @@ This 4-stage system is depicted below:
 ---
 
 ## Installation and Usage
+
+note: had to do this to make calibration_gui.py and datacollection_loc.py work at the same time (deleted cv's libqxcb.so) --> https://forum.qt.io/topic/119109/using-pyqt5-with-opencv-python-cv2-causes-error-could-not-load-qt-platform-plugin-xcb-even-though-it-was-found/2
 
 #### For Development
 ...

@@ -28,7 +28,6 @@ hmg_exists = False # flag denoting whether a computed homography matrix exists a
 ### The desired cam resolution (if it matches the real output the camera can provide) will be resized to that without aspect ratio distortion
 ### You need to check the available camera formats, choose a backend and a fourcc format string 
 desired_cam_res     = (1280,720)
-desired_cam_backend = cv2.CAP_V4L2
 desired_cam_fmt     = cv2.VideoWriter_fourcc('M', 'J', 'P', 'G')
 
 # adapted from: https://gist.github.com/docPhil99/ca4da12c9d6f29b9cea137b617c7b8b1
@@ -223,8 +222,6 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             self.label_2.setText("<font color='green'>Cam opened, streaming</font>")
             self.lineEdit_2.setEnabled(False);
             self.lineEdit_2.setStyleSheet("QLineEdit { background-color: gray; font-weight: bold}")
-            #############################################################################################
-            cap.open(0, apiPreference=desired_cam_backend)
             cap.set(cv2.CAP_PROP_FOURCC, desired_cam_fmt)
             cap.set(cv2.CAP_PROP_FRAME_WIDTH, desired_cam_res[0])
             cap.set(cv2.CAP_PROP_FRAME_HEIGHT, desired_cam_res[1])
@@ -425,37 +422,8 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         if e.key() == Qt.Key_Q:
             self.close()
 
-
-
 if __name__ == "__main__":
     app = QtWidgets.QApplication(sys.argv)
     w = MainWindow()
     w.show()
     sys.exit(app.exec_())
-
-"""
-Calibration routine GUI
-=======================
-- System starts with a blank canvas... 
- ** a QLineEdit waiting for an experiment name
- ** a QLineEdit waiting for a video device string, a QPushButton to submit it and a status message QLabel on their right 
-- User enters experiment name and video device string and clicks connect, 
- --> if the entered experiment name is taken or no experiment name is submitted, the feed does not come on, QLabel shows related error message
- --> if the entered experiment name is valid, a folder gets created with that name under experiments/
- --> if the entered video device is valid...
-         ** status message QLabel updates to green for 1 second, then QLabel, QLineEdit and QPushButton disappears
-         ** video starts streaming live at 1920x1080, rescaled to 1280x720 for visualization
- --> if the entered video device is NOT valid... 
-         ** feed does not come on, QLineEdit, status message QLabel and QPushButton stays on
-         ** the opencv error message is relayed in red on QLabel
-- assume that the user got a valid video device string and an experiment name, above the video stream there's ...
- ** a QRadioButton to select calibration mode: 1) manual, 2) aruco
-     --> if manual is selected, no extra annotations are shown on the feed yet
-     --> if aruco is selected, the aruco tags are annotated on the feed if they are detected (user adjusts lighting etc. accordingly to make them get detected)
- ** 1 QPushButton to shoot (freeze on the GUI) a reference image, 1 QPushButton to cancel it (if you want to try again), 1 QPushButton to validate the selection, 1 QLabel to show status again
-- once a good reference image is shot and validated, a Compute Homography Matrix QPushButton appears. 
-     ** Either with aruco or manually, there has to be at least 4 labeled points before clicking on that homography button, or QLabel will give an error
-     ** in manual mode, the user clicks points on the image to mark them, and with each click a QLineEdit+QPushButton pops up asking for actual (x,y) dimensions, user enters numbers, validity check is done, if valid, accept and continue, repeat as many times as the user clicks
-     ** in aruco mode, aruco annotations are made visible on the reference image, the user needs to click to a spot close to the aruco to label each one (??label how??). labeled arucos are green, unlabeled ones are red.
-     ** once >=4 points are reached, then the user can click on compute homography
-"""
