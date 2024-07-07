@@ -5,4 +5,6 @@ List of tools:
 - datacollection_rss.py: script that takes in experiment folderpath, dumps timestamped tshark readings to file 
 - datacollection_merge.py: script that takes in experiment folderpath, merges \_loc.py and \_rss.py outputs to create data.json
 
-the other files are auxiliary
+the other files are auxiliary.
+
+datacollection_loc_sort.py is a direct replica of https://github.com/abewley/sort/blob/master/sort.py
