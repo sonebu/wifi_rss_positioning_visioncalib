@@ -2,7 +2,17 @@
 
 Benchmarking and developing no-reference RSS-based indoor positioning systems (i.e., input = only RSS, output = location predictions). We use a calibrated camera-based setup to collect ground truth location information and simultaneously sample input RSS data points over wireshark for training and evaluation. Demos do not require any live input from the camera (only the reference image is used for visualization). 
 
+### ToDos:
+
+- datacollection_rss.py: this will probably just be a bash script using tshark, it might not even be necessary to use python, it will generate the tshark.txt file (see explanation below)
+- wifi_chconfig.sh files for experiments: these should be modified runnable (no arguments, hardcoded) versions of the chanhop.sh file, but they should also log the hardware details for future reference (wifi card etc) 
+- datacollection_merge.py: will be adapted from the first test (dormAP)
+- demo.py: the formulation isn't ready for this one, will we be using an experiment reference image as the layout?
+- development/ folder: first algorithms and benchmarking capability
+- LitSurvey: SoTA methods etc.
+
 --- 
+
 ## Description
 
 An "experiment" requires 2 computers (not necessarily 2 people): a Location Logger (cLL) and an RSS logger (cRS). 2 stages are considered in an experiment:
