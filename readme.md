@@ -10,6 +10,10 @@ Benchmarking and developing no-reference RSS-based indoor positioning systems (i
 - demo.py: the formulation isn't ready for this one, will we be using an experiment reference image as the layout?
 - development/ folder: first algorithms and benchmarking capability
 - LitSurvey: SoTA methods etc.
+- Pose estimation + feet detection might be used for location logging
+- YOLO is a bit glitchy, especially when the whole body is not shown, median filtering for this?
+- self-calibrating camera approaches?
+- aruco tag printing, placement etc.
 
 --- 
 
@@ -44,7 +48,9 @@ This 4-stage system is depicted below:
 
 ## Installation and Usage
 
-note: had to do this to make calibration_gui.py and datacollection_loc.py work at the same time (deleted cv's libqxcb.so) --> https://forum.qt.io/topic/119109/using-pyqt5-with-opencv-python-cv2-causes-error-could-not-load-qt-platform-plugin-xcb-even-though-it-was-found/2
+- note: had to do this to make calibration_gui.py and datacollection_loc.py work at the same time (deleted cv's libqxcb.so) --> https://forum.qt.io/topic/119109/using-pyqt5-with-opencv-python-cv2-causes-error-could-not-load-qt-platform-plugin-xcb-even-though-it-was-found/2
+- wireshark should be set up according to this (non-root user should be able to use dumpcap): https://osqa-ask.wireshark.org/questions/7523/ubuntu-machine-no-interfaces-listed/
+
 
 #### For Development
 ...

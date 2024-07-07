@@ -1,3 +1,9 @@
 reference image does not exist in a form that can be used for re-calibration
 
 Model_localize.py demoda kullandigimiz yurt girisinde anlik konumu gosteren yanip sonen noktayi gostermek icin var model.pth ile birlikte calisiyor. Bitirme videosunu cekebilmek icin yapmistik.
+
+"""postere sonuç koyduğumuz deney için 2 txt bir json dosyası var:
+A1- loc kaydını da cv.py'ın terminale print ettiğini grep awk ye pipe ederek txt'e kaydediyoruz
+A2- Wireshark'tan kayıt alıyosun, wireshark ekranından copypaste edip txt'ye aktarıyosun --> RSS kayıtları
+A3- .json dosyası şöyle oluşturuluyor: iki .txt dosyasını bir python script'ine veriyoruz, bazı oddity'ler sebebiyle eksik kayıtlar olabiliyor, onları da manually geçirmiştik, burada bi fix yapılması lazım. Bu kodda match etmeyen timestamp'leri match ettirmek için en yakın 250ms lik boundary'lere snap ettirip match ettirdik."""
+
