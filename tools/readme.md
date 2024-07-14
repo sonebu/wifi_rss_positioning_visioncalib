@@ -6,7 +6,7 @@ List of tools:
 
 - datacollection_merge.py: script that takes in experiment folderpath, merges \_loc.py and \_rss.py outputs to create data.json (kullanılmıyor)
 
-- datacollection_merge.sh: Script that takes an experiment folder path, runs the output of datacollection_loc.py and datacollection_rss.sh, merges the data, and converts the merged data to JSON format. The output file is output.json. (input flagi sizin yaptığınız formatla aynı yaptım) (./merge_loc_rss.sh -e ../../experiments/exp000_202403xx_dorm_calpnphmg)
+- datacollection_merge.sh: Script that takes an experiment folder path, runs the output of datacollection_loc.py and datacollection_rss.sh, merges the data, and converts the merged data to JSON format. The output file is output.json. (input flagi sizin yaptığınız formatla aynı yaptım) (./datacollection_merge.sh -e ../../experiments/exp000_202403xx_dorm_calpnphmg)
 
 the other files are auxiliary.
 
