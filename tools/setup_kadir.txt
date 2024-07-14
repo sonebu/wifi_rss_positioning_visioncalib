@@ -1,0 +1,4 @@
+sudo apt install tshark
+sudo apt install iw
+pip install pyshark
+
