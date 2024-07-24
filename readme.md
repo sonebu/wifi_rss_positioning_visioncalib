@@ -19,7 +19,7 @@ Each experiment has a "data package" associated with it. The data package contai
 - **"reference_image_withHomographyAnchors.png"**: a version of the reference_image showing the anchors used for obtaining the homography matrix
 - **"homography_matrix.npy/txt"**: the homography matrix, saved as both a loadable file as well as a human-readable file
 - **"wifi_chconfig.sh"**: runnable wifi channel config script (hardcode any arguments in the script such that "bash wifi_chconfig.sh" works). This can simply select 1 channel, or hop between channels (modified version the utils/wifi_channel_hopping/chanhop_original.sh  
-- **"tshark.txt"**: raw tshark log for the experiment (collected by cRS, containing RSS data)
+- **"tshark.json"**: raw tshark log for the experiment (collected by cRS, containing RSS data)
 - **"loc_xy.txt"**: raw loc_x/loc_y log for the experiment (collected by CLL, containing ground truth location data)
 - **"data.json"**: merged RSS + camera-based loc_x/loc_y data, no new data on top of tshark.txt + loc_xy.txt
 
