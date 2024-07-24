@@ -31,14 +31,6 @@ This 4-stage system is depicted below:
 
 ![System Diagram](documentation/drawings/system.png)
 
----
-
-## Installation and Usage
-
-#### For Development
-...
-
-#### For Demonstrations
-...
+See setup.md for setup details
 
 
