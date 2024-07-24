@@ -1,0 +1,26 @@
+experiment prosedürü:
+=====================
+0)	 deney yapmayı düşündüğümüz ortama gidip rss bilgisayarı ile (loc ile değil) o ortamda hangi frekanslarda deney yapmalıyız ve deney yapmaya uygun bir wifi trafiği görüyor muyuz diye bi wireshark ile monitor mode'da gezinip anlamaya çalışalım durumu 
+	--> uzayda sabit bi wifi kaynağı var mı, düzgün power'la onu görebiliyor muyuz hareket etmeyi düşündüğümüz alan nezdinde, ...)
+	--> wifi_chconfig.sh dosyası zaten buna göre düzenlencek.
+1)	 hem rss hem loc bilgisayarında git repo'muzun main branch'inde olduğumuzu ensure ediyoruz (git pull yapıyoruz)
+2) 	 experiment-DDMMYY adında repo'da bir branch açılıyor, hem rss hem loc bilgisayarında bu branch checkout ediliyor
+3) 	 calibration_gui.py loc bilgisayarında koşuyor
+4)	 calibration tamamlanınca loc bilgisayarı branch'e experiment klasörünü push ediyor.
+5) 	 rss bilgisayarı tekrar experiment folder'ını almak için branch'te pull yapıyor, iki tarafta da klasör hazır olmuş oluyor
+6) 	 rss ve loc bilgisayarlarının saatlerinin eşleşmesi için timesync.sh in iki bilgisayarda da koşturulması, ve saatin aynı mı diye manual bi kontrol edilmesi
+7.1) datacollection_loc.py --> bu kameraya bağlı bilgisayarda koşuyor, bu rss bilgisayarındaki herhangi bişeyden önce başlıyor, loc_xy.txt dosyasını yazaduruyor
+7.2) wifi_monitormode.sh   --> bu rss kaydeden ve gezen bilgisayarda aşağıdakilerden önce koşuyor 
+7.3) wifi_chconfig.sh      --> bu rss kaydeden ve gezen bilgisayarda koşuyor, kanal konfigürasyonu yapıyor, rss datası kaydetmeden önce başlıyor
+7.4) datacollection_rss.sh --> bu rss kaydeden ve gezen bilgisayarda koşuyor, tshark.txt dosyasını yazaduruyor
+
+	--> bu bir süre koşuyor, rss ve loc datası simultaneously toplanıyor, 
+		loc datası rss ten önce başladığı için bir miktar fazlası olacak, merge script'i bunları discard edecek
+
+8) loc bilgisayarı datacollection_loc.py ın koşusunu durduruyor, henüz commit yapmıyor.
+9) rss bilgisayarı datacollection_rss.sh ve wifi_chconfig.sh koşusunu durduruyor, interneti geri açıp (step 3.2 de interneti gitmişti), kendi çıkarttığı tshark.txt dosyasını commit ediyor
+
+	--> burda rss bilgisayarının işi bitti.
+
+10) loc bilgisayarı branch'te pull yapıp tshark.txt i alıyor
+11) loc bilgisayarı datacollection_merge.py ı çalıştıracak, bu dosya tshark.txt i ve loc_xy.txt i alıp data.json ı oluşturacak.
