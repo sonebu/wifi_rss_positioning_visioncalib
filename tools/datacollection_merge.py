@@ -167,11 +167,7 @@ def update_json_with_location(experiment_folder):
     output_file = os.path.join(base_dir, path)  # Example output file
     location_data = read_location_data(location_file)
     
-    
-    
-    
 
-    
     # Create a dictionary for fast lookup
     location_dict = {}
     for timestamp, loc_x, loc_y in location_data:
@@ -186,18 +182,25 @@ def update_json_with_location(experiment_folder):
     for item in data:
         frame_time = item.get("_source", {}).get("layers", {}).get("frame.time", [""])[0]
         # Find matching location data
-        
-        if frame_time in location_dict:
+       
+        if frame_time in location_dict and loc_x not in item["_source"].get("layers", {}):
             
             # Assuming each timestamp could have multiple loc_x and loc_y pairs
             locs = location_dict[frame_time]
-            
-            item["_source"]["layers"]["loc_x"] = [loc_x]
-            item["_source"]["layers"]["loc_y"] = [loc_y]
+            print(locs)
+            item["_source"]["layers"]["loc_x"] = [locs[0][0]]
+            item["_source"]["layers"]["loc_y"] = [locs[0][1]]
     
     # Write the updated JSON to a new file
+    filtered_data = []
+    for item in data:
+        layers = item["_source"].get("layers", {})
+        signal_dbm = layers.get("wlan_radio.signal_dbm", [])
+        if "loc_x" in layers and "loc_y" in layers and signal_dbm: 
+            filtered_data.append(item)
+    
     with open(output_file, 'w') as outfile:
-        json.dump(data, outfile, indent=2)
+        json.dump(filtered_data, outfile, indent=2)
 def remove_files():
     files_to_remove = ['processed_loc_xy.txt', 'processed_rss.json']
     
