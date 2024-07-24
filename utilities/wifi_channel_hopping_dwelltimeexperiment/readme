@@ -1,0 +1,6 @@
+dwell time'ın gerekliliği ve etkileri hakkında bir deney, ss'ler farklı dwell time'larda burak'ın evindeki bir tane seçili wifi AP'nin broadcast mesajlarını inceliyor
+
+[7/16, 16:31] Burak Soner: durumun özeti o dediğim gibi --> dwell time azaldıkça mesaj yakalama ihtimali düşüyor, profile edemiyorum şu anda kolayca ama iwconfig command'inin kendisi zaten belirli bir süre alıyor, biz onunla comparable bir sürede dwell yaparsak (veya sizin yaptığınız gibi hiç dwell yapmazsak) data toplamaya vakit kalmıyor, wifi kartı sadece kanal geçişi yapmış oluyor
+[7/16, 16:31] Burak Soner: dwell time arttıkça bizim farklı kanallardan data alma ihtimalimiz azalıyor tabii ki, ama bence deney yapacağımız ortamda hangi frekansta işe yarar sinyaller var diye bakıp o kanalı (veya kanalları) seçip onlar arasında uzunca bir dwell yaparak ilerleyebiliriz
+[7/16, 16:32] Burak Soner: ideal senaryo tabi tek kanalda işimize yarar birşeyler bulmak, o zaman wifi_chconfig.sh script'inde sadece bir iwconfig command'i çağırılacak ve run'ı bitecek demek oluyor
+[7/16, 16:33] Burak Soner: o durumda saniyede 10 paket toplayabiliyoruz
