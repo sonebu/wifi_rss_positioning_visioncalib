@@ -11,9 +11,8 @@ import numpy as np
 
 import torch, json
 import torch.nn as nn
-import numpy as np
 import torch.optim as optim
-import argparse, sys
+import argparse
 
 
 def read_hmg_mtx(file_path):
