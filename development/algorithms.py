@@ -56,8 +56,49 @@ def RssPositioningAlgo_Interpolation(rss_values, data_dictionary, k=3): # k=3 de
     
     return (estimated_x, estimated_y) # tahmini x ve y değerlerini döndür
 
-
 #4- MLP-based supervised model
+
+
+
+def mlp_based_localization(json_file, number_of_training_iters=401, batch_size=1, train_test_split=0.5): # number_of_training_iters=401, batch_size=1, train_test_split=0.5 default olarak verildi
+  
+    inp_rss_vals, gt_locations = load_data(json_file)  # load_data fonksiyonunu kullanarak veriyi yükle
+    train_loader, test_loader, tensor_x_train, tensor_y_train, tensor_x_test, tensor_y_test = prepare_data_loaders(
+        inp_rss_vals, gt_locations, batch_size, train_test_split)  # prepare_data_loaders fonksiyonunu kullanarak veriyi hazırla
+
+ 
+    model = MLP() # MLP modelini oluştur
+    model.train() # modeli eğitim moduna al
+
+  
+    criterion = nn.MSELoss(reduction='mean') # loss fonksiyonu olarak Mean Squared Error kullan
+    optimizer = optim.Adam(model.parameters(), lr=1e-3) # optimizer olarak Adam kullan
+
+    
+    for i in range(number_of_training_iters): # number_of_training_iters kadar eğitim yap
+        running_loss = 0.0 # başlangıçta loss değeri 0
+        for inputs, labels in train_loader: # train_loader'dan her bir batch için
+            optimizer.zero_grad()   
+            outputs = model(inputs)     
+            loss = criterion(outputs, labels)   
+            loss.backward()            
+            optimizer.step()         
+            running_loss += loss.item() 
+
+        if i+1 % 1 == 0: # her 20 epoch'ta
+            print(f'Epoch [{i + 1}/{number_of_training_iters}] running accumulative loss across all batches: {running_loss:.3f}')
+
+    
+    predicted_locations_trainset = model(tensor_x_train) # eğitim seti için tahmin edilen konumları al
+    #print("Predicted locations on training set:", predicted_locations_trainset)
+
+    
+    predicted_locations_test = model(tensor_x_test) # test seti için tahmin edilen konumları al
+    #print("Predicted locations on test set:", predicted_locations_test)
+
+    return model
+
+
 #5- nearest neighbour çok pt + MLP ...
 
 class MLP(nn.Module):
@@ -75,7 +116,6 @@ class MLP(nn.Module):
         x = self.activation_fcn(self.hidden_layer2(x))
         x = self.output_layer(x)
         return x
-
 
 
 

@@ -20,6 +20,7 @@ def load_data(json_file):
     second_hold = 5
 
     secondold = None
+
     rssi1 = None
     rssi2 = None
     rssi3 = None
@@ -68,7 +69,6 @@ def load_data(json_file):
                 elif source_address == target_addresses[1]:
                     rssi3 = rssi
                     #print("rssi3 is ok")
-
             if (rssi1 != None) and (rssi2 != None) and (rssi3 != None):
                 inp_rss_vals.append([rssi1, rssi2, rssi3])  # We may have multiple RSSI values later, so keep it as a list
                 gt_locations.append([loc_x, loc_y])
@@ -92,13 +92,10 @@ def load_data(json_file):
     inp_rss_vals = list(inp_rss_vals_shuffled)
     gt_locations = list(gt_locations_shuffled)
 
-
     # Convert lists to numpy arrays
     gt_locations = np.asarray(gt_locations)
     inp_rss_vals = np.asarray(inp_rss_vals)
     return inp_rss_vals, gt_locations
-
-
 
 def prepare_data_loaders(inp_rss_vals, gt_locations, batch_size=1, train_test_split=0.5):
     split_index = int(len(inp_rss_vals) * train_test_split)
@@ -120,7 +117,6 @@ def prepare_data_loaders(inp_rss_vals, gt_locations, batch_size=1, train_test_sp
     test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=y_test.shape[0], shuffle=False)
 
     return train_loader, test_loader, tensor_x_train, tensor_y_train, tensor_x_test, tensor_y_test
-
 
 
 data_dictionary = {
