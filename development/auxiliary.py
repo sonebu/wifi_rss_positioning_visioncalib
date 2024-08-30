@@ -17,7 +17,10 @@ def load_data(json_file):
     with open(json_file) as f:
         data = json.load(f)
 
-    timestampold = ""
+    second_hold = 5
+
+    secondold = None
+
     rssi1 = None
     rssi2 = None
     rssi3 = None
@@ -28,7 +31,8 @@ def load_data(json_file):
     for item in data:
         
         timestampnew = item.get("_source", {}).get("layers", {}).get("frame.time", [])[0]
- 
+        secondnew = int(timestampnew.split(":")[-1].split(".")[0])
+        #print(secondnew)
         loc_x_new = float(item.get("_source", {}).get("layers", {}).get("loc_x", [])[0])
         loc_y_new = float(item.get("_source", {}).get("layers", {}).get("loc_y", [])[0])
 
@@ -39,9 +43,20 @@ def load_data(json_file):
         else:
             continue
         
-        #print("ok")
+        if secondold is not None :
+            if secondnew < secondold:
+                secondnew += 60  # Adjust for rollover
+        
+            if (secondnew-secondold) > second_hold:
+                secondold = None
+                rssi1 = None
+                rssi2 = None
+                rssi3 = None
+
+                continue
+
         # Extract the RSSI value
-        if timestampnew == timestampold:
+        if secondold is None or(secondnew - secondold) <= second_hold:
             #print("ts is ok")
             if source_address in target_addresses:
                 rssi = float(item.get("_source", {}).get("layers", {}).get("wlan_radio.signal_dbm", [])[0])
@@ -54,19 +69,18 @@ def load_data(json_file):
                 elif source_address == target_addresses[1]:
                     rssi3 = rssi
                     #print("rssi3 is ok")
-        else:
             if (rssi1 != None) and (rssi2 != None) and (rssi3 != None):
                 inp_rss_vals.append([rssi1, rssi2, rssi3])  # We may have multiple RSSI values later, so keep it as a list
                 gt_locations.append([loc_x, loc_y])
-            loc_x = loc_x_new
-            loc_y = loc_y_new
-            timestampold = timestampnew
-            rssi1 = None
-            rssi2 = None
-            rssi3 = None
-            
+                loc_x = loc_x_new
+                loc_y = loc_y_new
+                secondold = secondnew % 60
+                rssi1 = None
+                rssi2 = None
+                rssi3 = None
+    
     # Zip the lists together
-    combined = list(zip(inp_rss_vals, gt_locations))
+    combined = list(zip(inp_rss_vals[1:], gt_locations[1:]))
 
     # Shuffle the combined list
     random.shuffle(combined)
@@ -103,23 +117,6 @@ def prepare_data_loaders(inp_rss_vals, gt_locations, batch_size=1, train_test_sp
     test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=y_test.shape[0], shuffle=False)
 
     return train_loader, test_loader, tensor_x_train, tensor_y_train, tensor_x_test, tensor_y_test
-
-class MLP(nn.Module):
-    def __init__(self):
-        super(MLP, self).__init__()
-        self.input_layer = nn.Linear(3, 16)
-        self.hidden_layer1 = nn.Linear(16, 32)
-        self.hidden_layer2 = nn.Linear(32, 20)
-        self.output_layer = nn.Linear(20, 2)
-        self.activation_fcn = nn.ReLU()
-
-    def forward(self, x):
-        x = self.activation_fcn(self.input_layer(x))
-        x = self.activation_fcn(self.hidden_layer1(x))
-        x = self.activation_fcn(self.hidden_layer2(x))
-        x = self.output_layer(x)
-        return x
-
 
 
 data_dictionary = {

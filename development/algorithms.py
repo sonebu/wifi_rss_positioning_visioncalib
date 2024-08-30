@@ -6,7 +6,7 @@ import torch.nn as nn
 import numpy as np
 
 from auxiliary import data_dictionary  # auxiliary.py'de tanımlı olan data_dictionary kullanılacak
-from auxiliary import load_data, prepare_data_loaders, MLP # auxiliary.py'de tanımlı olan load_data, prepare_data_loaders ve MLP kullanılacak
+from auxiliary import load_data, prepare_data_loaders# auxiliary.py'de tanımlı olan load_data, prepare_data_loaders ve MLP kullanılacak
 
 #1- nearest neighbour az pt            ||    
 #2- nearest neighbour çok pt           || --> bu metodlar için şu commit ID'de implementation var: f3a2db49692c0928cd671d593489ffb04ea6e9ba     
@@ -21,7 +21,8 @@ def RssPositioningAlgo_NearestNeighbour(rss_values, data_dictionary):
             min_distance = distance
             best_match = position
             
-    return best_match
+    x, y = map(float, best_match.split('_'))
+    return [x,y]
 
 
 
@@ -54,8 +55,6 @@ def RssPositioningAlgo_Interpolation(rss_values, data_dictionary, k=3): # k=3 de
     estimated_y = weighted_sum_y / total_weight # tahmini y değeri
     
     return (estimated_x, estimated_y) # tahmini x ve y değerlerini döndür
-
-
 
 #4- MLP-based supervised model
 
@@ -102,89 +101,33 @@ def mlp_based_localization(json_file, number_of_training_iters=401, batch_size=1
 
 #5- nearest neighbour çok pt + MLP ...
 
+class MLP(nn.Module):
+    def __init__(self):
+        super(MLP, self).__init__()
+        self.input_layer = nn.Linear(3, 16)
+        self.hidden_layer1 = nn.Linear(16, 32)
+        self.hidden_layer2 = nn.Linear(32, 20)
+        self.output_layer = nn.Linear(20, 2)
+        self.activation_fcn = nn.ReLU()
 
-def combined_fingerprint_mlp_localization(json_file, k=3, number_of_training_iters=401, batch_size=32, train_test_split=0.8): # k=3, number_of_training_iters=401, batch_size=32, train_test_split=0.8 default olarak verildi
-    # Load and prepare data
-    inp_rss_vals, gt_locations = load_data(json_file)
-    train_loader, test_loader, tensor_x_train, tensor_y_train, tensor_x_test, tensor_y_test = prepare_data_loaders(
-        inp_rss_vals, gt_locations, batch_size, train_test_split)
+    def forward(self, x):
+        x = self.activation_fcn(self.input_layer(x))
+        x = self.activation_fcn(self.hidden_layer1(x))
+        x = self.activation_fcn(self.hidden_layer2(x))
+        x = self.output_layer(x)
+        return x
 
-
-    # Step 1: Select k nearest neighbors for each test point 
-    selected_train_indices = []
-    selected_train_inputs = []
-    selected_train_outputs = []
-    
-    for test_point in tensor_x_test:
-        distances = torch.norm(tensor_x_train - test_point, dim=1) 
-        nearest_indices = torch.topk(distances, k=k, largest=False).indices  # Find k nearest neighbors
-        selected_train_indices.append(nearest_indices)
-        
-        # Collecting the corresponding RSS and locations of nearest neighbors
-        selected_train_inputs.extend(tensor_x_train[nearest_indices])
-        selected_train_outputs.extend(tensor_y_train[nearest_indices])
-
-    selected_train_inputs = torch.stack(selected_train_inputs)
-    selected_train_outputs = torch.stack(selected_train_outputs)
-
-    # Step 2: Train an MLP on the selected training set
-    selected_train_dataset = torch.utils.data.TensorDataset(selected_train_inputs, selected_train_outputs)
-    selected_train_loader = torch.utils.data.DataLoader(selected_train_dataset, batch_size=batch_size, shuffle=True)
-    
-    model = MLP()
-    model.train()
-
-    criterion = nn.MSELoss(reduction='mean')
-    optimizer = optim.Adam(model.parameters(), lr=1e-3)
-
-    for i in range(number_of_training_iters):
-        running_loss = 0.0
-        for inputs, labels in selected_train_loader:
-            optimizer.zero_grad()       # Zero the gradients
-            outputs = model(inputs)     # Forward pass
-            loss = criterion(outputs, labels)  # Compute loss
-            loss.backward()             # Backward pass
-            optimizer.step()            # Update weights
-            running_loss += loss.item() # Accumulate loss
-
-        if i % 1 == 0:
-            print(f'Epoch [{i + 1}/{number_of_training_iters}] running accumulative loss across all batches: {running_loss:.3f}')
-
-    # Step 3: Evaluate the model on the test set 
-    model.eval()
-    predicted_locations_test = model(tensor_x_test)
-    #print("Predicted locations using combined Fingerprint and MLP:", predicted_locations_test)
-
-    return model
 
 
 test_rss_values = [-34, -60, -54]
 
-#####        EXAMPLE USAGES     #####
-
 
 # 1- Test Nearest Neighbor with One Point
-print("\nRunning Nearest Neighbor with One Point...")
-nn_single_point_result = RssPositioningAlgo_NearestNeighbour(test_rss_values, data_dictionary)
-print("Nearest Neighbor (One Point) Result:", nn_single_point_result)
+#print("\nRunning Nearest Neighbor with One Point...")
+#nn_single_point_result = RssPositioningAlgo_NearestNeighbour(test_rss_values, data_dictionary)
+#print("Nearest Neighbor (One Point) Result:", nn_single_point_result)
 
 # 3- Test Nearest Neighbor with Multiple Points + Interpolation
-print("\nRunning Nearest Neighbor with Multiple Points + Interpolation...")
-nn_interpolation_result = RssPositioningAlgo_Interpolation(test_rss_values, data_dictionary, k=3)
-print("Nearest Neighbor with Interpolation Result:", nn_interpolation_result)
-
-# 4- Test MLP-based Localization
-model = MLP()
-print("\nRunning MLP-based Localization...")
-model = mlp_based_localization('data.json', number_of_training_iters=10, batch_size=32, train_test_split=0.8)
-model.eval()
-output = model(torch.tensor(test_rss_values).float())
-print("MLP-based localization results: ", output.tolist())
-
-# 5- Test Nearest Neighbor with Multiple Points + MLP
-model1 = MLP()
-print("\nRunning Nearest Neighbor with Multiple Points + MLP...")
-model1 = combined_fingerprint_mlp_localization('data.json', k=3, number_of_training_iters=10, batch_size=32, train_test_split=0.8)
-model.eval()
-output = model1(torch.tensor(test_rss_values).float())
-print("est Nearest Neighbor with Multiple Points + MLP results: ", output.tolist())
+#print("\nRunning Nearest Neighbor with Multiple Points + Interpolation...")
+#nn_interpolation_result = RssPositioningAlgo_Interpolation(test_rss_values, data_dictionary, k=3)
+#print("Nearest Neighbor with Interpolation Result:", nn_interpolation_result)
