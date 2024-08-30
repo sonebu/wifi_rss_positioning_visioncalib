@@ -5,26 +5,29 @@ import torch.optim as optim
 import torch.nn as nn
 import numpy as np
 
-from auxiliary import data_dictionary  # auxiliary.py'de tanımlı olan data_dictionary kullanılacak
-from auxiliary import load_data, prepare_data_loaders# auxiliary.py'de tanımlı olan load_data, prepare_data_loaders ve MLP kullanılacak
+#from auxiliary import data_dictionary  # auxiliary.py'de tanımlı olan data_dictionary kullanılacak
+#from auxiliary import load_data, prepare_data_loaders# auxiliary.py'de tanımlı olan load_data, prepare_data_loaders ve MLP kullanılacak
 
 #1- nearest neighbour az pt            ||    
 #2- nearest neighbour çok pt           || --> bu metodlar için şu commit ID'de implementation var: f3a2db49692c0928cd671d593489ffb04ea6e9ba     
 
-def RssPositioningAlgo_NearestNeighbour(rss_values, data_dictionary):
+def RssPositioningAlgo_NearestNeighbour(rss_values, db): # db is a Tuple of the form (<rssi array>,<loc array>)
     min_distance = float('inf')
-    best_match = None
+    best_match_xy = None
 
-    for position, fingerprint in data_dictionary.items():
-        distance = math.dist(rss_values, fingerprint)
+    # check if the length of data lists in db matches those submitted for prediction
+    if(len(db[0][0]) != len(rss_values)):
+        raise ValueError(f'Length of the submitted RSSI array ({len(rss_values)}) for prediction does not match the length of that in the database ({len(db[0][0])})')
+
+    # exhaustive search within db, iterate over rssi elements and extract corresponding locs
+    for fp_idx, fp in enumerate(db[0]):
+        fingerprint  = fp
+        ref_location = db[1][fp_idx]
+        distance     = math.dist(rss_values, fingerprint)
         if distance < min_distance:
             min_distance = distance
-            best_match = position
-            
-    x, y = map(float, best_match.split('_'))
-    return [x,y]
-
-
+            best_match_xy   = ref_location
+    return best_match_xy # best_match_xy is an array of size 1x2, for loc_x and loc_y respectively
 
 #3- nearest neighbour çok pt + interp  --> bunun implementation'ı github'da yok şu anda (1/r^2 model kullanılmıştı)
 
