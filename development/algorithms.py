@@ -114,6 +114,50 @@ def mlp_based_localization(train_loader,tensor_x_train,number_of_training_iters,
     return model
 
 
+def combined_fingerprint_mlp_localization(train_loader,tensor_x_train,tensor_y_train,tensor_x_test,number_of_training_iters, batch_size,k=3):
+    selected_train_indices = []
+    selected_train_inputs = []
+    selected_train_outputs = []
+    
+    for test_point in tensor_x_test:
+        distances = torch.norm(tensor_x_train - test_point, dim=1) 
+        nearest_indices = torch.topk(distances, k=k, largest=False).indices  # Find k nearest neighbors
+        selected_train_indices.append(nearest_indices)
+        
+        # Collecting the corresponding RSS and locations of nearest neighbors
+        selected_train_inputs.extend(tensor_x_train[nearest_indices])
+        selected_train_outputs.extend(tensor_y_train[nearest_indices])
+
+    selected_train_inputs = torch.stack(selected_train_inputs)
+    selected_train_outputs = torch.stack(selected_train_outputs)
+
+    # Step 2: Train an MLP on the selected training set
+    selected_train_dataset = torch.utils.data.TensorDataset(selected_train_inputs, selected_train_outputs)
+    selected_train_loader = torch.utils.data.DataLoader(selected_train_dataset, batch_size=batch_size, shuffle=True)
+    
+    model = MLP()
+    model.train()
+
+    criterion = nn.MSELoss(reduction='mean')
+    optimizer = optim.Adam(model.parameters(), lr=1e-3)
+
+    for i in range(number_of_training_iters):
+        running_loss = 0.0
+        for inputs, labels in selected_train_loader:
+            optimizer.zero_grad()       # Zero the gradients
+            outputs = model(inputs)     # Forward pass
+            loss = criterion(outputs, labels)  # Compute loss
+            loss.backward()             # Backward pass
+            optimizer.step()            # Update weights
+            running_loss += loss.item() # Accumulate loss
+
+        if i % 20 == 0:
+            print(f'Epoch [{i + 1}/{number_of_training_iters}] running accumulative loss across all batches: {running_loss:.3f}')
+
+    # Step 3: Evaluate the model on the test set 
+    model.eval()
+    return model
+
 #5- nearest neighbour çok pt + MLP ...
 
 class MLP(nn.Module):
