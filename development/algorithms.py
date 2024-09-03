@@ -103,12 +103,8 @@ def mlp_based_localization(train_loader,tensor_x_train,number_of_training_iters,
             optimizer.step()         
             running_loss += loss.item() 
         
-        if (i+1) % 20 == 0: # her 20 epoch'ta
+        if i % 20 == 0: # her 20 epoch'ta
             print(f'Epoch [{i + 1}/{number_of_training_iters}] running accumulative loss across all batches: {running_loss:.3f}')
-
-    
-    predicted_locations_trainset = model(tensor_x_train) # eğitim seti için tahmin edilen konumları al
-    #print("Predicted locations on training set:", predicted_locations_trainset)
 
     
     return model
@@ -154,8 +150,7 @@ def combined_fingerprint_mlp_localization(train_loader,tensor_x_train,tensor_y_t
         if i % 20 == 0:
             print(f'Epoch [{i + 1}/{number_of_training_iters}] running accumulative loss across all batches: {running_loss:.3f}')
 
-    # Step 3: Evaluate the model on the test set 
-    model.eval()
+
     return model
 
 #5- nearest neighbour çok pt + MLP ...
