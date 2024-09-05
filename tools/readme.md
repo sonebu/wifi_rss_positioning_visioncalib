@@ -12,7 +12,7 @@ the other files are auxiliary.
 
 datacollection_loc_sort.py is a direct replica of https://github.com/abewley/sort/blob/master/sort.py
 
-chanhop.sh: Simple Bash script that changes the channel to monitor different frequencies.
+wifi_chconfig_template.sh: Simple Bash script that changes the channel to monitor different frequencies.
 
 
 
