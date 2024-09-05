@@ -62,15 +62,6 @@ def loadData_staticTargetAddrMatch(json_file, second_hold = 5, shuffle=False, ta
                 time_list[addr_idx]  = secondnew
                 loc_x_list[addr_idx] = loc_x_new
                 loc_y_list[addr_idx] = loc_y_new
-                
-                ### Note: target address [1] and [2] were swapped earlier ( ["d8:84:66:39:29:e8", "d8:84:66:03:61:00", "d8:84:66:4a:06:c9"] ) 
-                ###       and the if check was [2] = rssi2 and [1] = rssi3, I swapped the address list instead and switched [1] and [2] in the if check
-                #if source_address == target_addresses[0]:
-                #    rssi1 = rssi
-                #elif source_address == target_addresses[1]:
-                #    rssi2 = rssi
-                #elif source_address == target_addresses[2]:
-                #    rssi3 = rssi
             
             if(not(any(x is None for x in rssi_list))):
                 inp_rss_vals.append(rssi_list)
@@ -94,17 +85,7 @@ def loadData_staticTargetAddrMatch(json_file, second_hold = 5, shuffle=False, ta
                 time_list  = [None]*len(target_addresses)
                 loc_x_list = [None]*len(target_addresses)
                 loc_y_list = [None]*len(target_addresses)
-
-            #if (rssi1 != None) and (rssi2 != None) and (rssi3 != None): # ToDo: change this to rssi_list
-            #    inp_rss_vals.append([rssi1, rssi2, rssi3])  # We may have multiple RSSI values later, so keep it as a list
-            #    gt_locations.append([loc_x, loc_y])
-            #    secondold = secondnew % 60
-            #    loc_x = loc_x_new 
-            #    loc_y = loc_y_new
-            #    rssi1 = None
-            #    rssi2 = None
-            #    rssi3 = None
-    
+                    
     if(shuffle):
         # Zip the lists together
         combined = list(zip(inp_rss_vals[1:], gt_locations[1:]))
@@ -124,7 +105,7 @@ def loadData_staticTargetAddrMatch(json_file, second_hold = 5, shuffle=False, ta
     inp_rss_vals = np.asarray(inp_rss_vals)
     return inp_rss_vals, gt_locations
 
-def prepare_data_loaders(inp_rss_vals, gt_locations, batch_size=1, train_test_split=0.5):
+def prepare_data_loaders(inp_rss_vals, gt_locations, batch_size=1, trainshuffle=False, train_test_split=0.5):
     split_index = int(len(inp_rss_vals) * train_test_split)
     
     x_train = inp_rss_vals[:split_index, :]
@@ -138,10 +119,10 @@ def prepare_data_loaders(inp_rss_vals, gt_locations, batch_size=1, train_test_sp
     tensor_y_test = torch.tensor(y_test).float()
 
     train_dataset = torch.utils.data.TensorDataset(tensor_x_train, tensor_y_train)
-    train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
+    train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=batch_size, shuffle=trainshuffle)
 
     test_dataset = torch.utils.data.TensorDataset(tensor_x_test, tensor_y_test)
-    test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=y_test.shape[0], shuffle=False)
+    test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=batch_size, shuffle=False)
 
     return train_loader, test_loader, tensor_x_train, tensor_y_train, tensor_x_test, tensor_y_test
 
