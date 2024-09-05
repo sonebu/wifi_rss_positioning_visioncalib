@@ -1,5 +1,5 @@
 from sklearn.cluster import KMeans 
-import math, torch
+import math, torch, time
 import torch.optim as optim
 import torch.nn as nn
 import numpy as np
@@ -11,7 +11,7 @@ import numpy as np
 ###
 
 ## inference function (predicts loc based on rss input)
-def RssPositioningAlgo_NearestNeighbour(rss_values, db): # db is a Tuple of the form (<rssi array>,<loc array>)
+def RssPosAlgo_NearestNeighbour(rss_values, db): # db is a Tuple of the form (<rssi array>,<loc array>)
     min_distance = float('inf')
     best_match_xy = None
 
@@ -30,7 +30,7 @@ def RssPositioningAlgo_NearestNeighbour(rss_values, db): # db is a Tuple of the 
     return best_match_xy # best_match_xy is an array of size 1x2, for loc_x and loc_y respectively
 
 ## inference function (predicts loc based on rss input), uses interpolation on top of nearest neighbour
-def RssPositioningAlgo_NearestNeighbour_Interpolation(rss_values, db, interp_k=3): # k=3 default olarak verildi
+def RssPosAlgo_NearestNeighbour_Interpolation(rss_values, db, interp_k=3): # k=3 default olarak verildi
     distances = []    
     for fp_idx, fp in enumerate(db[0]): # data_dictionary'deki her bir eleman için
         fingerprint  = fp
@@ -58,7 +58,7 @@ def RssPositioningAlgo_NearestNeighbour_Interpolation(rss_values, db, interp_k=3
     return (estimated_x, estimated_y) # tahmini x ve y değerlerini döndür
 
 ## "training" function (builds database using Kmeans, based on provided training set xt-yt)
-def RssPositioningAlgo_NearestNeighbour_GetKmeansDb(xt, yt, num_clusters, verbose=False):
+def RssPosAlgo_NearestNeighbour_GetKmeansDb(xt, yt, num_clusters, verbose=False):
     kmeans_rss = KMeans(n_clusters = num_clusters, random_state=0, n_init="auto").fit(yt) 
     train_cluster_ids = kmeans_rss.labels_
     if(verbose):
@@ -79,85 +79,14 @@ def RssPositioningAlgo_NearestNeighbour_GetKmeansDb(xt, yt, num_clusters, verbos
     db_kmeans = (db_kmeans_RSSIs, db_kmeans_locs)
     return db_kmeans
 
+#################################################################################################################################################################
+### Neural Networks - Supervised Learning
+###
 
-#4- MLP-based supervised model
-
-
-def mlp_based_localization(train_loader,tensor_x_train,number_of_training_iters, batch_size):
-
-    model = MLP() # MLP modelini oluştur
-    model.train() # modeli eğitim moduna al
-
-  
-    criterion = nn.MSELoss(reduction='mean') # loss fonksiyonu olarak Mean Squared Error kullan
-    optimizer = optim.Adam(model.parameters(), lr=1e-3) # optimizer olarak Adam kullan
-
-    
-    for i in range(number_of_training_iters): # number_of_training_iters kadar eğitim yap
-        running_loss = 0.0 # başlangıçta loss değeri 0
-        for inputs, labels in train_loader: # train_loader'dan her bir batch için
-            optimizer.zero_grad()   
-            outputs = model(inputs)     
-            loss = criterion(outputs, labels)   
-            loss.backward()            
-            optimizer.step()         
-            running_loss += loss.item() 
-        
-        if i % 20 == 0: # her 20 epoch'ta
-            print(f'Epoch [{i + 1}/{number_of_training_iters}] running accumulative loss across all batches: {running_loss:.3f}')
-
-    
-    return model
-
-
-def combined_fingerprint_mlp_localization(train_loader,tensor_x_train,tensor_y_train,tensor_x_test,number_of_training_iters, batch_size,k=3):
-    selected_train_indices = []
-    selected_train_inputs = []
-    selected_train_outputs = []
-    
-    for test_point in tensor_x_test:
-        distances = torch.norm(tensor_x_train - test_point, dim=1) 
-        nearest_indices = torch.topk(distances, k=k, largest=False).indices  # Find k nearest neighbors
-        selected_train_indices.append(nearest_indices)
-        
-        # Collecting the corresponding RSS and locations of nearest neighbors
-        selected_train_inputs.extend(tensor_x_train[nearest_indices])
-        selected_train_outputs.extend(tensor_y_train[nearest_indices])
-
-    selected_train_inputs = torch.stack(selected_train_inputs)
-    selected_train_outputs = torch.stack(selected_train_outputs)
-
-    # Step 2: Train an MLP on the selected training set
-    selected_train_dataset = torch.utils.data.TensorDataset(selected_train_inputs, selected_train_outputs)
-    selected_train_loader = torch.utils.data.DataLoader(selected_train_dataset, batch_size=batch_size, shuffle=True)
-    
-    model = MLP()
-    model.train()
-
-    criterion = nn.MSELoss(reduction='mean')
-    optimizer = optim.Adam(model.parameters(), lr=1e-3)
-
-    for i in range(number_of_training_iters):
-        running_loss = 0.0
-        for inputs, labels in selected_train_loader:
-            optimizer.zero_grad()       # Zero the gradients
-            outputs = model(inputs)     # Forward pass
-            loss = criterion(outputs, labels)  # Compute loss
-            loss.backward()             # Backward pass
-            optimizer.step()            # Update weights
-            running_loss += loss.item() # Accumulate loss
-
-        if i % 20 == 0:
-            print(f'Epoch [{i + 1}/{number_of_training_iters}] running accumulative loss across all batches: {running_loss:.3f}')
-
-
-    return model
-
-#5- nearest neighbour çok pt + MLP ...
-
-class MLP(nn.Module):
+## inference (predicts loc based on rss input with forward() fcn)
+class RssPosAlgo_NeuralNet_MLP4layer(nn.Module):
     def __init__(self):
-        super(MLP, self).__init__()
+        super(RssPosAlgo_NeuralNet_MLP4layer, self).__init__()
         self.input_layer = nn.Linear(3, 16)
         self.hidden_layer1 = nn.Linear(16, 32)
         self.hidden_layer2 = nn.Linear(32, 20)
@@ -169,19 +98,30 @@ class MLP(nn.Module):
         x = self.activation_fcn(self.hidden_layer1(x))
         x = self.activation_fcn(self.hidden_layer2(x))
         x = self.output_layer(x)
-        return x
+        best_match_xy = x
+        return best_match_xy # best_match_xy is an array of size 1x2, for loc_x and loc_y respectively
 
+## training function (takes in loss, optimizer, some parameters, and runs the loop)
+def RssPosAlgo_NeuralNet_supervisedTrainingLoop(train_loader, test_loader, model, criterion, optimizer, epochs, testfreq):    
+    running_loss = None
+    for i in range(epochs): 
+        # test every testfreq epoch
+        if i % testfreq == 0:
+            model.eval()
+            test_loss = 0;
+            for test_inputs, test_labels in test_loader:
+                test_outputs = model(test_inputs)     
+                test_loss    += criterion(test_outputs, test_labels)   
+            print(f'Epoch [{i + 1}/{epochs}] test loss: {test_loss:.3f}, training loss: {-1 if running_loss is None else running_loss:.3f}')
+            model.train()
+        # then keep on training
+        running_loss = 0.0 # başlangıçta loss değeri 0
+        for inputs, labels in train_loader: # train_loader'dan her bir batch için
+            optimizer.zero_grad()   
+            outputs = model(inputs)     
+            loss = criterion(outputs, labels)   
+            loss.backward()            
+            optimizer.step()         
+            running_loss += loss.item() 
 
-
-test_rss_values = [-34, -60, -54]
-
-
-# 1- Test Nearest Neighbor with One Point
-#print("\nRunning Nearest Neighbor with One Point...")
-#nn_single_point_result = RssPositioningAlgo_NearestNeighbour(test_rss_values, data_dictionary)
-#print("Nearest Neighbor (One Point) Result:", nn_single_point_result)
-
-# 3- Test Nearest Neighbor with Multiple Points + Interpolation
-#print("\nRunning Nearest Neighbor with Multiple Points + Interpolation...")
-#nn_interpolation_result = RssPositioningAlgo_Interpolation(test_rss_values, data_dictionary, k=3)
-#print("Nearest Neighbor with Interpolation Result:", nn_interpolation_result)
+    return model
