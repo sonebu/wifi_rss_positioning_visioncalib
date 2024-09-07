@@ -27,7 +27,7 @@ hmg_exists = False # flag denoting whether a computed homography matrix exists a
 ### The interface has a fixed size 1280x720 video window
 ### The desired cam resolution (if it matches the real output the camera can provide) will be resized to that without aspect ratio distortion
 ### You need to check the available camera formats, choose a backend and a fourcc format string 
-desired_cam_res     = (1280,720)
+desired_cam_res     = (1920,1080)
 desired_cam_fmt     = cv2.VideoWriter_fourcc('M', 'J', 'P', 'G')
 
 # adapted from: https://gist.github.com/docPhil99/ca4da12c9d6f29b9cea137b617c7b8b1
