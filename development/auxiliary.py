@@ -9,7 +9,7 @@ import torch.nn as nn
 ### there is a rolling-filter algorithm here with a "second_hold" time which, when it hits one of the target addresses, 
 ### it waits for the others to appear as well for a certain amount of time (hold).
 ### It drops that record if the others do not appear within the second_hold time
-def loadData_staticTargetAddrMatch(json_file, second_hold = 5, shuffle=False, target_addresses=["d8:84:66:39:29:e8", "d8:84:66:4a:06:c9", "d8:84:66:03:61:00"]): 
+def loadData_staticTargetAddrMatch(json_file, second_hold = 5, shuffle=False, target_addresses=["d8:84:66:39:29:e8", "d8:84:66:4a:06:c9", "d8:84:66:03:61:00"], snap250ms=True): 
     gt_locations = []
     inp_rss_vals = []
     with open(json_file) as f:
@@ -26,8 +26,14 @@ def loadData_staticTargetAddrMatch(json_file, second_hold = 5, shuffle=False, ta
     for item in data:
         timestampnew = item.get("_source", {}).get("layers", {}).get("frame.time", [])[0] # note how only the seconds are extracted
         secondnew    = int(timestampnew.split(":")[-1].split(".")[0])
-        loc_x_new    = float(item.get("_source", {}).get("layers", {}).get("loc_x", [])[0])
-        loc_y_new    = float(item.get("_source", {}).get("layers", {}).get("loc_y", [])[0])
+        loc_x_new    = item.get("_source", {}).get("layers", {}).get("loc_x", [])
+        loc_y_new    = item.get("_source", {}).get("layers", {}).get("loc_y", [])
+        if (snap250ms):
+            loc_x_new = float(loc_x_new[0])
+            loc_y_new = float(loc_y_new[0])
+        else:
+            loc_x_new = float(loc_x_new)
+            loc_y_new = float(loc_y_new)
 
         # check if there is a source address, and extract it if there is
         if item.get("_source", {}).get("layers", {}).get("wlan.sa", [])!=[]:
