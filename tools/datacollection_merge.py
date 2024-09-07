@@ -122,7 +122,7 @@ def transform_timestamp_json(input_file):
     transformed_data = []
     for item in data:
         frame_time = item.get("_source", {}).get("layers", {}).get("frame.time", [""])[0]
-        time_only = frame_time.split(" ")[3] if " " in frame_time else frame_time
+        time_only = frame_time.split(" ")[4] if " " in frame_time else frame_time
         time=process_line_timestamp(time_only)
         wlan_ssid = item.get("_source", {}).get("layers", {}).get("wlan.ssid", [""])[0]
         wlan_ssid=hex_to_ascii(wlan_ssid)
