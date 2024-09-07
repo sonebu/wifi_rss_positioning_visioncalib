@@ -1,8 +1,9 @@
 experiment prosedürü:
 =====================
-0)	 deney yapmayı düşündüğümüz ortama gidip rss bilgisayarı ile (loc ile değil) o ortamda hangi frekanslarda deney yapmalıyız ve deney yapmaya uygun bir wifi trafiği görüyor muyuz diye bi wireshark ile monitor mode'da gezinip anlamaya çalışalım durumu 
-	--> uzayda sabit bi wifi kaynağı var mı, düzgün power'la onu görebiliyor muyuz hareket etmeyi düşündüğümüz alan nezdinde, ...)
-	--> wifi_chconfig.sh dosyası zaten buna göre düzenlencek.
+0.1) deney yapmayı düşündüğümüz ortama gidip monitor mode kapalıyken utilities/wifi_scanAPs/wifiscan_filterKU.sh üstünden rss bilgisayarı ile (loc ile değil) o ortamda hangi frekanslarda deney yapmalıyız ve deney yapmaya uygun bir wifi trafiği görüyor muyuz diye bi gezinip anlamaya çalışalım durumu. ScanAP ile gördüklerimizin yüksek trafik olduğunu da verify etmek için bir de monitor mode'a geçip wireshark'ta saniyede iyi bir trafik görüyor muyuz diye verification yapalım. 
+	--> uzayda sabit bi wifi kaynağı var mı, düzgün power'la onu görebiliyor muyuz hareket etmeyi düşündüğümüz alan nezdinde, ...
+	--> wifi_chconfig.sh dosyası sonra buna göre düzenlencek.
+0.2) rss bilgisayarında alanı bulduktan sonra, aruco tag'leri yerleştirip loc bilgisayarıyla tools/calibration_gui.py ı çalıştırıyoruz, tag'leri gördüğümüzden emin oluyoruz, kamerayı sabitleyip bir de datacollection_loc.py ile tag 0'ı tutan adamı görebiliyor muyuz diye bakıyoruz. Bu da olduktan sonra bu alanda deney yapmaya hazırız. 
 1)	 hem rss hem loc bilgisayarında git repo'muzun main branch'inde olduğumuzu ensure ediyoruz (git pull yapıyoruz)
 2) 	 experiment-DDMMYY adında repo'da bir branch açılıyor, hem rss hem loc bilgisayarında bu branch checkout ediliyor
 3) 	 calibration_gui.py loc bilgisayarında koşuyor
