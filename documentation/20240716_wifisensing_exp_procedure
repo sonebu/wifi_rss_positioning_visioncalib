@@ -2,13 +2,13 @@ experiment prosedürü:
 =====================
 0.1) deney yapmayı düşündüğümüz ortama gidip monitor mode kapalıyken utilities/wifi_scanAPs/wifiscan_filterKU.sh üstünden rss bilgisayarı ile (loc ile değil) o ortamda hangi frekanslarda deney yapmalıyız ve deney yapmaya uygun bir wifi trafiği görüyor muyuz diye bi gezinip anlamaya çalışalım durumu. ScanAP ile gördüklerimizin yüksek trafik olduğunu da verify etmek için bir de monitor mode'a geçip wireshark'ta saniyede iyi bir trafik görüyor muyuz diye verification yapalım. 
 	--> uzayda sabit bi wifi kaynağı var mı, düzgün power'la onu görebiliyor muyuz hareket etmeyi düşündüğümüz alan nezdinde, ...
-	--> wifi_chconfig.sh dosyası sonra buna göre düzenlencek.
+	--> wifi_chconfig.sh dosyası sonra buna göre düzenlencek ve kenara kaydedilecek (calibration'dan sonra experiment folder'ın içine atılması lazım)
 0.2) rss bilgisayarında alanı bulduktan sonra, aruco tag'leri yerleştirip loc bilgisayarıyla tools/calibration_gui.py ı çalıştırıyoruz, tag'leri gördüğümüzden emin oluyoruz, kamerayı sabitleyip bir de datacollection_loc.py ile tag 0'ı tutan adamı görebiliyor muyuz diye bakıyoruz. Bu da olduktan sonra bu alanda deney yapmaya hazırız. 
 1)	 hem rss hem loc bilgisayarında git repo'muzun main branch'inde olduğumuzu ensure ediyoruz (git pull yapıyoruz)
 2) 	 experiment-DDMMYY adında repo'da bir branch açılıyor, hem rss hem loc bilgisayarında bu branch checkout ediliyor
 3) 	 calibration_gui.py loc bilgisayarında koşuyor
 4)	 calibration tamamlanınca loc bilgisayarı branch'e experiment klasörünü push ediyor.
-5) 	 rss bilgisayarı tekrar experiment folder'ını almak için branch'te pull yapıyor, iki tarafta da klasör hazır olmuş oluyor
+5) 	 rss bilgisayarı tekrar experiment folder'ını almak için branch'te pull yapıyor, iki tarafta da klasör hazır olmuş oluyor, wifi_chconfig.sh dosyası experiment folder'ın içine konuluyor 
 6) 	 rss ve loc bilgisayarlarının saatlerinin eşleşmesi için timesync.sh in iki bilgisayarda da koşturulması, ve saatin aynı mı diye manual bi kontrol edilmesi
 7.1) datacollection_loc.py --> bu kameraya bağlı bilgisayarda koşuyor, bu rss bilgisayarındaki herhangi bişeyden önce başlıyor, loc_xy.txt dosyasını yazaduruyor
 7.2) wifi_monitormode.sh   --> bu rss kaydeden ve gezen bilgisayarda aşağıdakilerden önce koşuyor 
