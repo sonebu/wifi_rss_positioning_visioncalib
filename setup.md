@@ -17,7 +17,7 @@ Run these on the command line one by one:
 	conda update conda -y
 	conda create -p ~/venv_p310/ python=3.10 -y
 	source activate ~/venv_p310/
-	pip install numpy scipy matplotlib notebook tqdm torch ultralytics opencv-python PyQt5 cvzone
+	pip install numpy scipy matplotlib notebook tqdm torch ultralytics opencv-python PyQt5 cvzone scikit-learn
 ```
 
 Wireshark's installation needs to be configured according to this (non-root user should be able to use dumpcap): 

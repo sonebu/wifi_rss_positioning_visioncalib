@@ -1,6 +1,6 @@
 experiment prosedürü:
 =====================
-0.1) deney yapmayı düşündüğümüz ortama gidip monitor mode kapalıyken utilities/wifi_scanAPs/wifiscan_filterKU.sh üstünden rss bilgisayarı ile (loc ile değil) o ortamda hangi frekanslarda deney yapmalıyız ve deney yapmaya uygun bir wifi trafiği görüyor muyuz diye bi gezinip anlamaya çalışalım durumu. ScanAP ile gördüklerimizin yüksek trafik olduğunu da verify etmek için bir de monitor mode'a geçip wireshark'ta saniyede iyi bir trafik görüyor muyuz diye verification yapalım. 
+0.1) deney yapmayı düşündüğümüz ortama gidip monitor mode kapalıyken utilities/wifi_scanAPs/wifiscan_filterKU.sh üstünden rss bilgisayarı ile (loc ile değil) o ortamda hangi frekanslarda deney yapmalıyız ve deney yapmaya uygun bir wifi trafiği görüyor muyuz diye bi gezinip anlamaya çalışalım durumu. ScanAP ile gördüklerimizin yüksek trafik olduğunu da verify etmek için bir de monitor mode'a geçip wireshark'ta saniyede iyi bir trafik görüyor muyuz diye verification yapalım. En son wifiscan_filterKU.sh çıktısını gördüğümüz haliyle log etmek için wifiscan_filterKU.txt olarak kaydedelim. Bunun içinden sonra çünkü target_addresses.txt i kontrol ederiz diye tahmin ediyoruz.
 	--> uzayda sabit bi wifi kaynağı var mı, düzgün power'la onu görebiliyor muyuz hareket etmeyi düşündüğümüz alan nezdinde, ...
 	--> wifi_chconfig.sh dosyası sonra buna göre düzenlencek ve kenara kaydedilecek (calibration'dan sonra experiment folder'ın içine atılması lazım)
 0.2) rss bilgisayarında alanı bulduktan sonra, aruco tag'leri yerleştirip loc bilgisayarıyla tools/calibration_gui.py ı çalıştırıyoruz, tag'leri gördüğümüzden emin oluyoruz, kamerayı sabitleyip bir de datacollection_loc.py ile tag 0'ı tutan adamı görebiliyor muyuz diye bakıyoruz. Bu da olduktan sonra bu alanda deney yapmaya hazırız. 
@@ -8,20 +8,22 @@ experiment prosedürü:
 2) 	 experiment-DDMMYY adında repo'da bir branch açılıyor, hem rss hem loc bilgisayarında bu branch checkout ediliyor
 3) 	 calibration_gui.py loc bilgisayarında koşuyor
 4)	 calibration tamamlanınca loc bilgisayarı branch'e experiment klasörünü push ediyor.
-5) 	 rss bilgisayarı tekrar experiment folder'ını almak için branch'te pull yapıyor, iki tarafta da klasör hazır olmuş oluyor, wifi_chconfig.sh dosyası experiment folder'ın içine konuluyor 
+5) 	 rss bilgisayarı tekrar experiment folder'ını almak için branch'te pull yapıyor, iki tarafta da klasör hazır olmuş oluyor, wifi_chconfig.sh ve wifiscan_filterKU.sh çıktısı (alan survey'i yaparken step0 daki) dosyası experiment folder'ın içine konuluyor 
 6) 	 rss ve loc bilgisayarlarının saatlerinin eşleşmesi için timesync.sh in iki bilgisayarda da koşturulması, ve saatin aynı mı diye manual bi kontrol edilmesi
 7.1) datacollection_loc.py --> bu kameraya bağlı bilgisayarda koşuyor, bu rss bilgisayarındaki herhangi bişeyden önce başlıyor, loc_xy.txt dosyasını yazaduruyor
 7.2) wifi_monitormode.sh   --> bu rss kaydeden ve gezen bilgisayarda aşağıdakilerden önce koşuyor 
 7.3) wifi_chconfig.sh      --> bu rss kaydeden ve gezen bilgisayarda koşuyor, kanal konfigürasyonu yapıyor, rss datası kaydetmeden önce başlıyor
-7.4) datacollection_rss.sh --> bu rss kaydeden ve gezen bilgisayarda koşuyor, tshark.txt dosyasını yazaduruyor
+7.4) datacollection_rss.sh --> bu rss kaydeden ve gezen bilgisayarda koşuyor, tshark.json dosyasını yazaduruyor
 
 	--> bu bir süre koşuyor, rss ve loc datası simultaneously toplanıyor, 
 		loc datası rss ten önce başladığı için bir miktar fazlası olacak, merge script'i bunları discard edecek
 
 8) loc bilgisayarı datacollection_loc.py ın koşusunu durduruyor, henüz commit yapmıyor.
-9) rss bilgisayarı datacollection_rss.sh ve wifi_chconfig.sh koşusunu durduruyor, interneti geri açıp (step 3.2 de interneti gitmişti), kendi çıkarttığı tshark.txt dosyasını commit ediyor
+9) rss bilgisayarı datacollection_rss.sh ve wifi_chconfig.sh koşusunu durduruyor, interneti geri açıp (step 3.2 de interneti gitmişti), kendi çıkarttığı tshark.json dosyasını commit ediyor
 
 	--> burda rss bilgisayarının işi bitti.
 
-10) loc bilgisayarı branch'te pull yapıp tshark.txt i alıyor
-11) loc bilgisayarı datacollection_merge.py ı çalıştıracak, bu dosya tshark.txt i ve loc_xy.txt i alıp data.json ı oluşturacak.
+10) loc bilgisayarı branch'te pull yapıp tshark.json i alıyor
+11) loc bilgisayarı datacollection_merge.py ı çalıştıracak, bu dosya tshark.json i ve loc_xy.txt i alıp data.json ı oluşturacak.
+12) loc bilgisayarı extract_target_addresses.py script'ini run edip data.json a bakarak KU SSID'lere sahip olan unique target_addresses ları çıkartsın, target_addresses.txt i de experiment folder'ına kaydetsin. Bu script -e halinde experiment folder'ı alsın
+13) loc bilgisayarı data-tshark ikilisini zipleyip, esas json dosyalarını silip, zipli halini commit edicek
