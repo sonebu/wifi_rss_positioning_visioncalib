@@ -1,35 +1,17 @@
-import json
-import os
-import argparse
+import json, os, argparse
+import numpy as np
 from collections import defaultdict
-def round_milliseconds(msec):
-    if msec < 13:
-        return 0
-    elif msec < 38:
-        return 25
-    elif msec < 63:
-        return 50
-    elif msec < 88:
-        return 75
-    else:
-        return 0
 
 def process_line_timestamp(line):
-
-
-    
     time_parts = line.split('.')
-    
     if len(time_parts) != 2:
         return line  # Skip lines that do not have the expected timestamp format
 
     hms, usec = time_parts
-    msec = int(usec[:2])  # Keep only the first 3 digits
+    msec = int(usec[:3])  # Keep only the first 3 digits
     
-    rounded_msec = round_milliseconds(msec)
-    
-    # Handle overflow in seconds
-    if msec >= 88:
+    rounded_msec = msec # skipping a rounding function here
+    if msec >= 999:
         h, m, s = map(int, hms.split(':'))
         s += 1
         if s == 60:
@@ -41,10 +23,18 @@ def process_line_timestamp(line):
         hms = f"{h:02}:{m:02}:{s:02}"
         rounded_msec = 0
 
-    new_timestamp = f"{hms}.{rounded_msec:02d}"
+    new_timestamp = f"{hms}.{rounded_msec:03d}"
     
     return new_timestamp
 
+def process_line_locxy(line):
+    parts = line.split(',')
+    if len(parts) <= 2:
+        return line  # Skip lines that do not have all required parts
+    timestamp = parts[0]
+    new_timestamp = process_line_timestamp(timestamp)
+    parts[0] = new_timestamp
+    return ','.join(parts)
 
 def hex_to_ascii(hex_str):
     # Remove any non-hexadecimal characters and spaces
@@ -67,53 +57,17 @@ def hex_to_ascii(hex_str):
         print(f"An error occurred: {e}")
         return None
 
-def process_line_loc_xy(line):
-    parts = line.split(',')
-    if len(parts) <= 2:
-        return line  # Skip lines that do not have all required parts
-
-    timestamp = parts[0]
-    time_parts = timestamp.split('.')
-    if len(time_parts) != 2:
-        return line  # Skip lines that do not have the expected timestamp format
-
-    hms, usec = time_parts
-    msec = int(usec[:2])  # Keep only the first 3 digits
-    
-
-    rounded_msec = round_milliseconds(msec)
-    if msec >= 88:
-        # Add 1 to the second part and reset milliseconds to 00
-        hms_parts = hms.split(':')
-        h, m, s = map(int, hms_parts)
-        s += 1
-        if s == 60:
-            s = 0
-            m += 1
-            if m == 60:
-                m = 0
-                h += 1
-        hms = f"{h:02}:{m:02}:{s:02}"
-        rounded_msec = 0
-
-    new_timestamp = f"{hms}.{rounded_msec:02d}"
-
-    parts[0] = new_timestamp
-    return ','.join(parts)
-
-def main(experiment_folder):
-    
-    base_dir = os.path.dirname(os.path.abspath(__file__))
-    path=str(experiment_folder)+"/loc_xy.txt"
-    input_file = os.path.join(base_dir, path)
-    output_file = os.path.join(base_dir, "processed_loc_xy.txt")  # Example output file
+def process_locxy(experiment_folder):
+    input_file  = experiment_folder+"loc_xy.txt"
+    output_file = experiment_folder+"processed_loc_xy.txt"  # Example output file
 
     with open(input_file, 'r') as infile, open(output_file, 'w') as outfile:
         for line in infile:
-            new_line = process_line_loc_xy(line.strip())
+            new_line = process_line_locxy(line.strip())
             outfile.write(new_line + '\n')
 
-def transform_timestamp_json(input_file):
+def transform_timestamp_json(experiment_folder):
+    input_file = experiment_folder+"tshark.json"
     # Open and read the input JSON file
     with open(input_file, 'r') as infile:
         data = json.load(infile)
@@ -144,8 +98,7 @@ def transform_timestamp_json(input_file):
         }
         transformed_data.append(transformed_item)
 
-    base_dir = os.path.dirname(os.path.abspath(__file__))
-    output_file = os.path.join(base_dir, "processed_rss.json")  # Example output file
+    output_file = experiment_folder+"processed_rss.json"
     with open(output_file, 'w') as outfile:
         json.dump(transformed_data, outfile, indent=2)
 
@@ -159,50 +112,9 @@ def read_location_data(file_path):
                 location_data.append((timestamp, loc_x, loc_y))
     return location_data
 
-def update_json_with_location(experiment_folder):
-    base_dir = os.path.dirname(os.path.abspath(__file__))
-    json_file = os.path.join(base_dir, "processed_rss.json")
-    location_file = os.path.join(base_dir, "processed_loc_xy.txt")
-    path=str(experiment_folder)+"/data.json"
-    output_file = os.path.join(base_dir, path)  # Example output file
-    location_data = read_location_data(location_file)
-    
-
-    # Create a dictionary for fast lookup
-    location_dict = {}
-    for timestamp, loc_x, loc_y in location_data:
-        if timestamp not in location_dict:
-            location_dict[timestamp] = []
-        location_dict[timestamp].append((loc_x, loc_y))
-    
-    # Read and update the JSON file
-    with open(json_file, 'r') as infile:
-        data = json.load(infile)
-    
-    for item in data:
-        frame_time = item.get("_source", {}).get("layers", {}).get("frame.time", [""])[0]
-        # Find matching location data
-       
-        if frame_time in location_dict and loc_x not in item["_source"].get("layers", {}):
-            
-            # Assuming each timestamp could have multiple loc_x and loc_y pairs
-            locs = location_dict[frame_time]
-            print(locs)
-            item["_source"]["layers"]["loc_x"] = [locs[0][0]]
-            item["_source"]["layers"]["loc_y"] = [locs[0][1]]
-    
-    # Write the updated JSON to a new file
-    filtered_data = []
-    for item in data:
-        layers = item["_source"].get("layers", {})
-        signal_dbm = layers.get("wlan_radio.signal_dbm", [])
-        if "loc_x" in layers and "loc_y" in layers and signal_dbm: 
-            filtered_data.append(item)
-    
-    with open(output_file, 'w') as outfile:
-        json.dump(filtered_data, outfile, indent=2)
-def remove_files():
-    files_to_remove = ['processed_loc_xy.txt', 'processed_rss.json']
+def remove_files(experiment_folder):
+    files_to_remove = [experiment_folder+'processed_loc_xy.txt', 
+                       experiment_folder+'processed_rss.json']
     
     for file_name in files_to_remove:
         try:
@@ -214,18 +126,76 @@ def remove_files():
             print(f"Permission denied: {file_name}")
         except Exception as e:
             print(f"Error removing {file_name}: {e}")
+
+def frametime2secs(frametime):
+    hrs   = int(frametime.split(":")[0])
+    mins  = int(frametime.split(":")[1])
+    secs  = int((frametime.split(":")[2]).split(".")[0])
+    msecs = int((frametime.split(":")[2]).split(".")[1])
+    total_seconds = (hrs*60*60*1000 + mins*60*1000 + secs*1000 + msecs) / 1000.0 
+    return total_seconds
+
+def get_timeinsecs_rss(sampledict, offset=0):
+    return frametime2secs(sampledict["_source"]["layers"]["frame.time"][0]) - offset;
+
+def update_json_with_location(experiment_folder, verbose=False):
+    rss_file    = experiment_folder+"processed_rss.json"
+    loc_file    = experiment_folder+"processed_loc_xy.txt"
+    output_file = experiment_folder+"data.json"
     
+    location_data = read_location_data(loc_file)
+    location_time = np.zeros(len(location_data))
+    for i, loc_item in enumerate(location_data):
+        location_time[i] = frametime2secs(location_data[i][0]) # [0] --> first item of tuple is timestamp
+    loc_starttime = location_time[0]
+    
+    # Read and update the JSON file
+    with open(rss_file, 'r') as infile:
+        data = json.load(infile)
+    
+    rss_starttime = get_timeinsecs_rss(data[0])
+    firststartsec = min(rss_starttime, loc_starttime)
+    location_time_seconds_suboffset = location_time - firststartsec
+    
+    for item in data:
+        rssitem_time_seconds_suboffset = get_timeinsecs_rss(item,offset=firststartsec)
+        time_distance_between_rss_and_closest_loc = np.abs(location_time_seconds_suboffset - rssitem_time_seconds_suboffset)
+        closest_location_idx = np.argmin(time_distance_between_rss_and_closest_loc)
+        closest_location_time = location_time_seconds_suboffset[closest_location_idx]
+        closest_location = (location_data[closest_location_idx][1], location_data[closest_location_idx][2])
+        if(verbose):
+            print(rssitem_time_seconds_suboffset, closest_location_time, closest_location)            
+        
+        ### NOTE: this is a 2.0 second waiting time, a "hold" mechanism 
+        ###       when we are hopping between 2 channels with 0.5s dwell this is fine,
+        ###       but when we hop between many channels with longer dwell times, 
+        ###       this will probably fail data collection altogeher
+        if(np.min(time_distance_between_rss_and_closest_loc) < 2.0):
+            item["_source"]["layers"]["loc_x"] = closest_location[0]
+            item["_source"]["layers"]["loc_y"] = closest_location[1]
+        else:
+            continue # skip this sample if it hits the hold mechanism
+
+    
+    # Write the updated JSON to a new file
+    filtered_data = []
+    for item in data:
+        layers = item["_source"].get("layers", {})
+        signal_dbm = layers.get("wlan_radio.signal_dbm", [])
+        if "loc_x" in layers and "loc_y" in layers and signal_dbm: 
+            filtered_data.append(item)
+    
+    with open(output_file, 'w') as outfile:
+        json.dump(filtered_data, outfile, indent=2)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Process experiment folder.')
     parser.add_argument('-e', '--experiment', required=True, help='Path to the experiment folder')
     args = parser.parse_args()
-    
-    base_dir = os.path.dirname(os.path.abspath(__file__))
-    input_file = os.path.join(base_dir, args.experiment+"/tshark.json" )
-    
-    
-    main(args.experiment)
-    transform_timestamp_json(input_file)
-    update_json_with_location(args.experiment)
-    remove_files()
+
+    expfolder = args.experiment
+
+    process_locxy(expfolder)
+    transform_timestamp_json(expfolder)
+    update_json_with_location(expfolder)
+    remove_files(expfolder)
