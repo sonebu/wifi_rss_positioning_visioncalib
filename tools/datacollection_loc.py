@@ -55,9 +55,7 @@ if __name__ == "__main__":
                 """Update the plot with the last 5 seconds of location data."""
                 self.axes.clear()
                 self.right_axes.clear()
-                           
-                
-                
+         
                 self.axes.tick_params(axis='y', colors='blue')  # Set tick labels and ticks color to blue
                 self.axes.spines['left'].set_color('blue')  # Set the spine color to blue
 
@@ -70,16 +68,14 @@ if __name__ == "__main__":
                     times = [t-start_time for t, _, _ in loc_data]  # Normalize time to 0 at the beginning
                     x_coords = [x for _, x, _ in loc_data]
                     y_coords = [y for _, _, y in loc_data]
-                    
-                    x_coords_np = np.array(x_coords)
-                    y_coords_np = np.array(y_coords)
+              
                     times_np=np.array(times)
-                    valid_x = ~np.isnan(x_coords_np)
-                    valid_y = ~np.isnan(y_coords_np)
+                    valid_x = ~np.isnan(x_coords)
+                    valid_y = ~np.isnan(y_coords)
 
                     # Replace invalid (NaN) values with NaN in coordinates, but keep times intact
-                    x_coords_np = np.where(valid_x, x_coords_np, np.nan)
-                    y_coords_np = np.where(valid_y, y_coords_np, np.nan)
+                    x_coords_np = np.where(valid_x, x_coords, np.nan)
+                    y_coords_np = np.where(valid_y, y_coords, np.nan)
                    
                     if np.any(valid_x):
                         x_min, x_max = np.nanmin(x_coords_np), np.nanmax(x_coords_np)
@@ -224,6 +220,7 @@ if __name__ == "__main__":
                 self.loc_data_buffer = deque(maxlen=500)
 
             def run(self):
+                c=0
                 while self._run_flag:
                     ret, cv_img = self.cap_obj.read()
                     if ret:
@@ -263,21 +260,24 @@ if __name__ == "__main__":
                                         cvzone.cornerRect(cv_img, (x1, y1, w, h), l=9, rt=2, colorR=(0, 255, 0))
                                         self.loc_xy_file.write(
                                             timestamp_ordered + "," + str(current_cordx) + "," + str(current_cordy) + "\n")
-                                        self.label_cordx.setText(f"loc_X: {np.round(1000 * current_cordx) / 1000}")
-                                        self.label_cordy.setText(f"loc_Y: {np.round(1000 * current_cordy) / 1000}")
+                                        
                                         self.loc_data_buffer.append((timestamp, current_cordx, current_cordy))
-                                        self.filter_last_5_seconds()
-                                        self.update_loc_display()
+                                        if c%5==0:
+                                            self.filter_last_5_seconds()
+                                            self.update_loc_display()
+                                        c+=1
                                     else:
                                         w, h = x2 - x1, y2 - y1
                                         cvzone.cornerRect(cv_img, (x1, y1, w, h), l=9, rt=2, colorR=(0, 0, 255))
                                         timestamp = time.time()
                                         current_cordx = np.nan
                                         current_cordy = np.nan
+                                     
                                         self.loc_data_buffer.append((timestamp, current_cordx, current_cordy))
-                                        self.filter_last_5_seconds()
-                                        self.update_loc_display()
-                                        
+                                        if c%5==0:
+                                            self.filter_last_5_seconds()
+                                            self.update_loc_display()
+                                        c+=1
 
                         self.change_pixmap_signal.emit(cv_img)
 
