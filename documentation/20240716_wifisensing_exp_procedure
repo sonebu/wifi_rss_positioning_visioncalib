@@ -25,5 +25,4 @@ experiment prosedürü:
 
 10) loc bilgisayarı branch'te pull yapıp tshark.json i alıyor
 11) loc bilgisayarı datacollection_merge.py ı çalıştıracak, bu dosya tshark.json i ve loc_xy.txt i alıp data.json ı oluşturacak.
-12) loc bilgisayarı extract_target_addresses.py script'ini run edip data.json a bakarak KU SSID'lere sahip olan unique target_addresses ları çıkartsın, target_addresses.txt i de experiment folder'ına kaydetsin. Bu script -e halinde experiment folder'ı alsın
-13) loc bilgisayarı data-tshark ikilisini zipleyip, esas json dosyalarını silip, zipli halini commit edicek
+12) loc bilgisayarı data-tshark ikilisini zipleyip, esas json dosyalarını silip, zipli halini commit edicek

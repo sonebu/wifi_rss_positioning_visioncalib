@@ -66,7 +66,7 @@ def process_locxy(experiment_folder):
             new_line = process_line_locxy(line.strip())
             outfile.write(new_line + '\n')
 
-def transform_timestamp_json(experiment_folder):
+def transform_timestamp_json(experiment_folder, ssid_hex=True, timeframe_4=True):
     input_file = experiment_folder+"tshark.json"
     # Open and read the input JSON file
     with open(input_file, 'r') as infile:
@@ -76,10 +76,11 @@ def transform_timestamp_json(experiment_folder):
     transformed_data = []
     for item in data:
         frame_time = item.get("_source", {}).get("layers", {}).get("frame.time", [""])[0]
-        time_only = frame_time.split(" ")[4] if " " in frame_time else frame_time
+        time_only = frame_time.split(" ")[3 if timeframe_4 else 4] if " " in frame_time else frame_time
         time=process_line_timestamp(time_only)
         wlan_ssid = item.get("_source", {}).get("layers", {}).get("wlan.ssid", [""])[0]
-        wlan_ssid=hex_to_ascii(wlan_ssid)
+        if(ssid_hex):
+            wlan_ssid=hex_to_ascii(wlan_ssid)
         transformed_item = {
             "_index": item.get("_index", "unknown"),
             "_type": item.get("_type", "doc"),
@@ -191,11 +192,13 @@ def update_json_with_location(experiment_folder, verbose=False):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Process experiment folder.')
     parser.add_argument('-e', '--experiment', required=True, help='Path to the experiment folder')
+    parser.add_argument('-ssidhx', '--ssid-hex', required=False, help='Set true if ssid values are hex in tshark.json')
+    parser.add_argument('-tf4', '--timeframe-4', required=False, help='Set true if timeframe has 4 valid fields in tshark.json')
     args = parser.parse_args()
 
     expfolder = args.experiment
 
     process_locxy(expfolder)
-    transform_timestamp_json(expfolder)
+    transform_timestamp_json(expfolder, ssid_hex=args.ssid_hex, timeframe_4)
     update_json_with_location(expfolder)
     remove_files(expfolder)
