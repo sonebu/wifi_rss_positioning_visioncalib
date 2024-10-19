@@ -3,10 +3,30 @@ from matplotlib import pyplot as plt
 import matplotlib.font_manager as font_manager
 import numpy as np
 import json
+from datetime import datetime
 
+
+def frametime2secs(frametime):
+    hrs   = int(frametime.split(":")[0][-2:])
+    mins  = int(frametime.split(":")[1])
+    secs  = int((frametime.split(":")[2]).split(".")[0])
+    msecs = int((frametime.split(":")[2]).split(".")[1][:1])
+    total_seconds = (hrs*60*60*1000 + mins*60*1000 + secs*1000 + msecs*10) / 1000.0 
+    return total_seconds
+
+ofset = frametime2secs(str(datetime.now()))
 
 # Tshark command
 command = "tshark -i mon0 -T json -e frame.time -e wlan_radio.signal_dbm -e wlan.sa -e wlan.ssid -e wlan.ra -e wlan.da -e wlan_radio.frequency -e wlan_radio.snr -e wlan_radio.noise_dbm -e wlan.antenna.id"
+
+plt.ion()
+
+# Setup the figure
+fig, ax = plt.subplots(figsize=(16, 5), dpi=80)
+line, = ax.plot([], [], marker="*", linestyle="None")
+ax.set_ylim([-95, 0])
+ax.grid()
+plt.show()
 
 def filterbySSID():
     ####### Filter data by unique source addresses and get lists
@@ -39,16 +59,8 @@ def filterbySSID():
 
     ############ Plot the RSS values for each Source        
 
-    def frametime2secs(frametime):
-        hrs   = int(frametime.split(":")[0][-2:])
-        mins  = int(frametime.split(":")[1])
-        secs  = int((frametime.split(":")[2]).split(".")[0])
-        msecs = int((frametime.split(":")[2]).split(".")[1][:1])
-        total_seconds = (hrs*60*60*1000 + mins*60*1000 + secs*1000 + msecs*10) / 1000.0 
-        return total_seconds
-
     def get_timeinsecs(sampledict, offset=0):
-        return frametime2secs(sampledict["_source"]["layers"]["frame.time"][0]) - offset-7780;
+        return frametime2secs(sampledict["_source"]["layers"]["frame.time"][0]) - offset;
 
     def get_freq(sampledict):
         return sampledict["_source"]["layers"]["wlan_radio.frequency"][0]
@@ -63,14 +75,15 @@ def filterbySSID():
         return sampledict["_source"]["layers"]["wlan_radio.signal_dbm"][0]
 
     time = []
+    
     for sample in packets:
-        t = get_timeinsecs(sample, offset=64999.800)
+        t = get_timeinsecs(sample, offset=ofset)
         if(t not in time):
             time.append(t)
-    print("Time : " , time[0])
+    
     array_ssid_rss = np.zeros((len(time), len(KU_AP_idx)))*np.nan
     for sample in packets:
-        t_sample  = get_timeinsecs(sample, offset=64999.800)
+        t_sample  = get_timeinsecs(sample, offset=ofset)
         t_idx     = time.index(t_sample)
         sa_sample = get_sourceaddr(sample)
         sa_idx    = lo_uniqueSAs.index(sa_sample)
@@ -78,13 +91,15 @@ def filterbySSID():
             array_ssid_idx = KU_AP_idx.index(sa_idx)
             array_ssid_rss[t_idx, array_ssid_idx] = get_rss(sample)
 
-    plt.figure(figsize=(16, 5), dpi=80)
-    plt.plot(time, array_ssid_rss, marker="*");
-    plt.ylim([-95, 0])
-    plt.grid()
-    plt.legend([(lo_uniqueSAs[idx][0]+ ", count: " + str(lo_SActrs[idx]) + ", freq: " + str(lo_freqs[idx])) for idx in KU_AP_idx], 
-        prop=font_manager.FontProperties(family='monospace'), loc='upper center', ncol=3)
-    plt.show()
+    # Update the plot
+    ax.clear()
+    ax.set_ylim([-95, 0])
+    ax.grid()
+    ax.plot(time, array_ssid_rss, marker="*")
+    ax.legend([(lo_uniqueSAs[idx][0] + ", count: " + str(lo_SActrs[idx]) + ", freq: " + str(lo_freqs[idx])) for idx in KU_AP_idx], 
+              prop=font_manager.FontProperties(family='monospace'), loc='upper center', ncol=3)
+    plt.draw()
+    plt.pause(0.01)
 
 def run(command):
     process = Popen(command, stdout=PIPE, shell=True)
@@ -126,10 +141,8 @@ if __name__ == "__main__":
 
                 packets.append(transformed_item)
                 current_packet = ""
-                if len(packets) % 200 == 0:
-                    #for i in packets:
-                     #   print(i,"\n********")
-                    filterbySSID()
+                print(len(packets))
+                filterbySSID()
 
 
 
