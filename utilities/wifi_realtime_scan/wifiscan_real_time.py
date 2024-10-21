@@ -10,12 +10,12 @@ def frametime2secs(frametime):
     hrs   = int(frametime.split(":")[0][-2:])
     mins  = int(frametime.split(":")[1])
     secs  = int((frametime.split(":")[2]).split(".")[0])
-    msecs = int((frametime.split(":")[2]).split(".")[1][:1])
+    msecs = int((frametime.split(":")[2]).split(".")[1][:2])
     total_seconds = (hrs*60*60*1000 + mins*60*1000 + secs*1000 + msecs*10) / 1000.0 
     return total_seconds
 
 ofset = frametime2secs(str(datetime.now()))
-
+print("ofset***********: ", ofset)
 # Tshark command
 command = "tshark -i mon0 -T json -e frame.time -e wlan_radio.signal_dbm -e wlan.sa -e wlan.ssid -e wlan.ra -e wlan.da -e wlan_radio.frequency -e wlan_radio.snr -e wlan_radio.noise_dbm -e wlan.antenna.id"
 
@@ -52,9 +52,8 @@ def filterbySSID():
     KU_AP_idx = []
 
     for i, ssid in enumerate(lo_SSIDs):
-        if ssid == "KU":
-            print(f"{ssid}  | {lo_uniqueSAs[i]} | {lo_freqs[i]} | {lo_SActrs[i]}")
-            KU_AP_idx.append(i)
+        print(f"{ssid}  | {lo_uniqueSAs[i]} | {lo_freqs[i]} | {lo_SActrs[i]}")
+        KU_AP_idx.append(i)
 
 
     ############ Plot the RSS values for each Source        
@@ -80,6 +79,7 @@ def filterbySSID():
         t = get_timeinsecs(sample, offset=ofset)
         if(t not in time):
             time.append(t)
+
     
     array_ssid_rss = np.zeros((len(time), len(KU_AP_idx)))*np.nan
     for sample in packets:
@@ -121,6 +121,9 @@ if __name__ == "__main__":
                 item = json.loads(current_packet[:-1])
                 frame_time = item.get("_source", {}).get("layers", {}).get("frame.time", [""])[0]
                 wlan_ssid = item.get("_source", {}).get("layers", {}).get("wlan.ssid", [""])[0]
+                if wlan_ssid != "KU":
+                    current_packet = ""
+                    continue
                 transformed_item = {
                     "_index": item.get("_index", "unknown"),
                     "_type": item.get("_type", "doc"),
@@ -142,6 +145,8 @@ if __name__ == "__main__":
                 packets.append(transformed_item)
                 current_packet = ""
                 print(len(packets))
+                #for i in packets:
+                #    print(i)
                 filterbySSID()
 
 
