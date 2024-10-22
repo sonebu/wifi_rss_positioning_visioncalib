@@ -70,7 +70,7 @@ def RssPosAlgo_NearestNeighbour_GetKmeansDb(xt, yt, num_clusters, verbose=False)
         print("Cluster centers (location) of each cluster center (virtual point), {x,y}:\n")
         print(db_kmeans_locs)
         print("-"*20)
-    train_cluster_rss_means = np.zeros((num_clusters,3))
+    train_cluster_rss_means = np.zeros((num_clusters, xt.shape[-1]))
     train_cluster_ctrs      = np.zeros((num_clusters,1)) # to be used for averaging
     for db_idx, cluster_idx in enumerate(train_cluster_ids):
         train_cluster_rss_means[cluster_idx] += xt[db_idx].numpy()
@@ -85,9 +85,9 @@ def RssPosAlgo_NearestNeighbour_GetKmeansDb(xt, yt, num_clusters, verbose=False)
 
 ## inference (predicts loc based on rss input with forward() fcn)
 class RssPosAlgo_NeuralNet_MLP4layer(nn.Module):
-    def __init__(self):
+    def __init__(self, inch=3):
         super(RssPosAlgo_NeuralNet_MLP4layer, self).__init__()
-        self.input_layer = nn.Linear(3, 16)
+        self.input_layer = nn.Linear(inch, 16)
         self.hidden_layer1 = nn.Linear(16, 32)
         self.hidden_layer2 = nn.Linear(32, 20)
         self.output_layer = nn.Linear(20, 2)
