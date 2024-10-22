@@ -199,6 +199,6 @@ if __name__ == "__main__":
     expfolder = args.experiment
 
     process_locxy(expfolder)
-    transform_timestamp_json(expfolder, ssid_hex=args.ssid_hex, timeframe_4)
+    transform_timestamp_json(expfolder, ssid_hex=args.ssid_hex, timeframe_4=args.timeframe_4)
     update_json_with_location(expfolder)
     remove_files(expfolder)
