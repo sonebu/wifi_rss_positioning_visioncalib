@@ -192,8 +192,8 @@ def update_json_with_location(experiment_folder, verbose=False):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Process experiment folder.')
     parser.add_argument('-e', '--experiment', required=True, help='Path to the experiment folder')
-    parser.add_argument('-ssidhx', '--ssid-hex', required=False, help='Set true if ssid values are hex in tshark.json')
-    parser.add_argument('-tf4', '--timeframe-4', required=False, help='Set true if timeframe has 4 valid fields in tshark.json')
+    parser.add_argument('-ssidhx', '--ssid-hex', action='store_true', required=False, help='add this if ssid values are hex in tshark.json')
+    parser.add_argument('-tf4', '--timeframe-4', action='store_true', required=False, help='add this if timeframe has 4 valid fields in tshark.json')
     args = parser.parse_args()
 
     expfolder = args.experiment
