@@ -229,8 +229,14 @@ if __name__ == "__main__":
                         yolo_detections = np.empty((0, 5))
 
                         # run aruco
-                        centers, corners, ids, cv_img = aruco_detect_draw(cv_img, verbose=False, draw=True)
+                        current_time = time.time()
 
+                        # Print time in the format: HH:MM:SS.ss
+                        formatted_time = time.strftime("%H:%M:%S", time.localtime(current_time))
+                        milliseconds = int((current_time * 1000) % 1000)
+                        ctime= f"{formatted_time}.{milliseconds:03d}"
+                        centers, corners, ids, cv_img = aruco_detect_draw(cv_img, verbose=False, draw=True)
+                        plotflag=0
                         for r in yolo_predictions:
                             for box in r.boxes:
                                 classname = int(box.cls[0])  # get detected class name
@@ -238,13 +244,16 @@ if __name__ == "__main__":
                                     x1, y1, x2, y2 = box.xyxy[0]
                                     x1, y1, x2, y2 = int(x1), int(y1), int(x2), int(y2)  # convert to int values
                                     is_detected_person_arucotagged = False
+                                    
                                     for ii, center in enumerate(centers):
                                         is_arucotag_id_correct = True if ids[ii] == 0 else False
                                         is_tag_within_box = True if ((center[0] >= x1) and (center[0] <= x2)) and (
                                                     (center[1] >= y1) and (center[1] <= y2)) else False
                                         if is_arucotag_id_correct and is_tag_within_box:
                                             is_detected_person_arucotagged = True
+                                            plotflag+=1
                                     if is_detected_person_arucotagged:
+                                        
                                         confidence = np.ceil((box.cpu().conf[0] * 100)) / 100  # cast to .cpu()
                                         current_detection = np.array([[x1, y1, x2, y2, confidence]])
                                         yolo_detections = np.vstack((yolo_detections, current_detection))
@@ -267,17 +276,19 @@ if __name__ == "__main__":
                                             self.update_loc_display()
                                         c+=1
                                     else:
+                                        
+                                        
                                         w, h = x2 - x1, y2 - y1
                                         cvzone.cornerRect(cv_img, (x1, y1, w, h), l=9, rt=2, colorR=(0, 0, 255))
                                         timestamp = time.time()
                                         current_cordx = np.nan
                                         current_cordy = np.nan
-                                     
-                                        self.loc_data_buffer.append((timestamp, current_cordx, current_cordy))
-                                        if c%5==0:
-                                            self.filter_last_5_seconds()
-                                            self.update_loc_display()
-                                        c+=1
+                                        if plotflag==0:
+                                            self.loc_data_buffer.append((timestamp, current_cordx, current_cordy))
+                                            if c%5==0:
+                                                self.filter_last_5_seconds()
+                                                self.update_loc_display()
+                                            c+=1
 
                         self.change_pixmap_signal.emit(cv_img)
 
