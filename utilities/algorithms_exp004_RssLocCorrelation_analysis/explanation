@@ -1,0 +1,29 @@
+[19:45, 11/2/2024] Burak Soner: bu koç AP'si nerde onu bilmediğimizden yine bizim 18'li modemi bi aldım analize
+[19:46, 11/2/2024] Burak Soner: trajectory'de burda önce sol alttan -4,0 a yakın yerden başlıyor erdem yürümeye
+[19:46, 11/2/2024] Burak Soner: sonra -2 civarında sağa gitmeye başlayıp, o S yi çiziyor birer adım geriye gide gide, rota net gözüküyor zaten
+[19:46, 11/2/2024] Burak Soner: çizime bikaç sample işareti ekleyeyim hatta bi sn
+[19:53, 11/2/2024] Burak Soner: henüz bi tezim yok ben de şimdi açıp bakıcam
+[19:53, 11/2/2024] Burak Soner: :)
+[19:56, 11/2/2024] Burak Soner: biraz daha filtrelenmiş bi halini daha atıyorum
+[19:58, 11/2/2024] Burak Soner: bi korelasyon var bence ya
+[19:58, 11/2/2024] Burak Soner: bi iddialarımı yazayım
+[20:00, 11/2/2024] Burak Soner: sonuncu çok oldu siliyorum
+[20:04, 11/2/2024] Burak Soner: - erdem kadirburaktan uzaklaşınca airties modemle (yeşil) arasına arakat bariyeri giriyor, RSS düşüyor (trajectory'nin ilk kısmında oluyor bu)
+- erdem sağ-sol-sağ-sol giderken airties modem ona yaklaştıkça artan, uzaklaştıkça azalan bi profil yine gösteriyor gibi
+- benzer şekilde sağ-sol-sağ-sol harekette murat kuşçunun ofisine yakın olan vr400 modeme (mavi) yaklaştıkça da bi periyodik hareket var (1210, 1515, 1700 civarı)
+
+970 civarı vr600 modemin (kırmızı) peak etmesi beklendik, sonraki yaklaşmalarda neden peak etmemiş açıkçası bilmiyorum
+[20:04, 11/2/2024] Burak Soner: ne dersiniz (biraz daha eleştirel bakmaya çalışarak)
+[20:05, 11/2/2024] Burak Soner: ben "datada bi sıkıntı yok, modelleme yaparken sadece tek bir rss değerini almamalıyız" iddiasında bulunuyorum sanırım
+[20:08, 11/2/2024] Burak Soner: ki RSS gibi çok noisy datada mantıklı
+[20:08, 11/2/2024] Burak Soner: ben burda onu yapıyorum temelde bakınca: tek layer'lı bir CNNden geçiriyorum datayı, sonra "burakNN" lokasyon tahmini yapıyor yani
+[20:40, 11/2/2024] Erdem Ergen (ELEC 491 WiFi Sensing): Hocam bu kısmı tam anlayamadık
+[20:41, 11/2/2024] Erdem Ergen (ELEC 491 WiFi Sensing): Birde bizim yaptığımız testlerde yurtta ilk yaptıklarımızda rss scalası daha genişti. 40-60 arası
+[20:41, 11/2/2024] Erdem Ergen (ELEC 491 WiFi Sensing): Buradaki değişim nispeten az olduğundan rsslerde problem var diye düşündük otomatik olarak
+[23:00, 11/2/2024] Burak Soner: bu makul, AP ler daha yakın ve daha kuvvetli, benim getirdiklerim ev tipi router koçunkiler çılgın transmit powerdadır kesin
+[23:01, 11/2/2024] Burak Soner: o yüzden bunda haksız değilsiniz, ama yine de korelasyon var gibi geldi bana filtrelenmiş haline bakınca, ordaki açıklamalar size ikna edici geldi mi
+[23:06, 11/2/2024] Burak Soner: burda şunu iddia ediyorum: ben şimdi filtreli plotları gösterince biraz da olsa lokasyonla filtreli RSS değerleri arasında bi korelasyon kurdum, fakat filtresiz değerlere bakınca bunu kuramıyorduk. Filtreleme de sonuçta aynı zaman anı için bir değil birçok RSS değerine bakarak hesap yapmak demek, çünkü moving average filter sonuçta o zamana kadarki N tane değerin average'ı direkt. Öyle olunca dedimki mesela lokasyon tahminini sadece o anki 3 RSS değerine göre değil de, atıyorum son 50 zaman anındaki RSS değerlerine bakarak yapalım
+[23:07, 11/2/2024] Burak Soner: yani network input u şu an 1x3 ya, onu 50x3 yapalım, o zaman çalışacak, gibi
+[23:07, 11/2/2024] Burak Soner: bunlar ama hep hipotez, siz ne düşünüyorsunuz diye soruyorum
+[12:06, 11/3/2024] Erdem Ergen (ELEC 491 WiFi Sensing): Hocam yani dedikleriniz mantıklı korelasyon var gibi gözüküyor. Elimizde alternatif bir çözümde yok. O yüzden 50*3 denenebilir bence.
+[14:00, 11/3/2024] Burak Soner: 👍🏻👍🏻
