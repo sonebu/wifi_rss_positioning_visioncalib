@@ -4,6 +4,7 @@ import numpy as np
 import torch.utils.data
 import torch.optim as optim
 import torch.nn as nn
+from torch.utils.data import Dataset, DataLoader
 
 ### filters a data.json file for records from static targets (e.g., APs) which appear together (list of source addresses for static targets = target_addresses)
 ### there is a rolling-filter algorithm here with a "second_hold" time which, when it hits one of the target addresses, 
@@ -111,24 +112,44 @@ def loadData_staticTargetAddrMatch(json_file, second_hold = 5, shuffle=False, ta
     inp_rss_vals = np.asarray(inp_rss_vals)
     return inp_rss_vals, gt_locations
 
-def prepare_data_loaders(inp_rss_vals, gt_locations, batch_size=1, trainshuffle=False, train_test_split=0.5):
+class SequentialDataset(Dataset):
+    def __init__(self, inp_rss_vals, gt_locations, window_size):
+        self.inp_rss_vals = inp_rss_vals
+        self.gt_locations = gt_locations
+        self.window_size = window_size
+        
+    def __len__(self):
+        # Number of sequences you can create (size of data - window_size + 1)
+        return len(self.inp_rss_vals) - self.window_size + 1
+
+    def __getitem__(self, idx):
+        # Get a window of 'window_size' sequential samples
+        x_seq = self.inp_rss_vals[idx:idx + self.window_size]
+        y_seq = self.gt_locations[idx:idx + self.window_size]
+        return torch.tensor(x_seq, dtype=torch.float32), torch.tensor(y_seq, dtype=torch.float32)
+
+def prepare_data_loaders(inp_rss_vals, gt_locations, batch_size=1, window_size=20, train_test_split=0.5):
+    # Determine split index based on train_test_split ratio
     split_index = int(len(inp_rss_vals) * train_test_split)
     
+    # Split the data into training and testing sets
     x_train = inp_rss_vals[:split_index, :]
     x_test = inp_rss_vals[split_index:, :]
     y_train = gt_locations[:split_index, :]
     y_test = gt_locations[split_index:, :]
+    
+    tensor_x_train = torch.tensor(x_train, dtype=torch.float32)
+    tensor_y_train = torch.tensor(y_train, dtype=torch.float32)
+    tensor_x_test = torch.tensor(x_test, dtype=torch.float32)
+    tensor_y_test = torch.tensor(y_test, dtype=torch.float32)
 
-    tensor_x_train = torch.tensor(x_train).float()
-    tensor_y_train = torch.tensor(y_train).float()
-    tensor_x_test = torch.tensor(x_test).float()
-    tensor_y_test = torch.tensor(y_test).float()
+    # Create datasets with sequential samples (Nx3) for both training and testing
+    train_dataset = SequentialDataset(x_train, y_train, window_size)
+    test_dataset = SequentialDataset(x_test, y_test, window_size)
 
-    train_dataset = torch.utils.data.TensorDataset(tensor_x_train, tensor_y_train)
-    train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=batch_size, shuffle=trainshuffle)
-
-    test_dataset = torch.utils.data.TensorDataset(tensor_x_test, tensor_y_test)
-    test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=batch_size, shuffle=False)
+    # Create data loaders
+    train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
+    test_loader = DataLoader(test_dataset, batch_size=batch_size, shuffle=True)
 
     return train_loader, test_loader, tensor_x_train, tensor_y_train, tensor_x_test, tensor_y_test
 

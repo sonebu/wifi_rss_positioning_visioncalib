@@ -85,8 +85,12 @@ def RssPosAlgo_NearestNeighbour_GetKmeansDb(xt, yt, num_clusters, verbose=False)
 
 ## inference (predicts loc based on rss input with forward() fcn)
 class RssPosAlgo_NeuralNet_MLP4layer(nn.Module):
-    def __init__(self, inch=3):
+    def __init__(self, window_size=20, inch=3):
         super(RssPosAlgo_NeuralNet_MLP4layer, self).__init__()
+        self.window_size = window_size
+        self.inch = inch
+
+        # Define the layers
         self.input_layer = nn.Linear(inch, 16)
         self.hidden_layer1 = nn.Linear(16, 32)
         self.hidden_layer2 = nn.Linear(32, 20)
@@ -94,12 +98,22 @@ class RssPosAlgo_NeuralNet_MLP4layer(nn.Module):
         self.activation_fcn = nn.ReLU()
 
     def forward(self, x):
+
+        if x.size() == 3:
+            batch_size, seq_len, _ = x.size()
+            # Flatten for processing through MLP
+            x = x.view(batch_size * seq_len, -1) 
+                 
         x = self.activation_fcn(self.input_layer(x))
         x = self.activation_fcn(self.hidden_layer1(x))
         x = self.activation_fcn(self.hidden_layer2(x))
         x = self.output_layer(x)
-        best_match_xy = x
-        return best_match_xy # best_match_xy is an array of size 1x2, for loc_x and loc_y respectively
+
+        if x.size() == 3:
+            x = x.view(batch_size, seq_len, -1)  # Shape: (batch_size, 2)
+        
+        return x
+# best_match_xy is an array of size 1x2, for loc_x and loc_y respectively
 
 ## training function (takes in loss, optimizer, some parameters, and runs the loop)
 def RssPosAlgo_NeuralNet_supervisedTrainingLoop(train_loader, test_loader, model, criterion, optimizer, epochs, testfreq):    
@@ -111,7 +125,7 @@ def RssPosAlgo_NeuralNet_supervisedTrainingLoop(train_loader, test_loader, model
             test_loss = 0;
             test_iters = 0;
             for test_inputs, test_labels in test_loader:
-                test_outputs = model(test_inputs)     
+                test_outputs = model(test_inputs)
                 test_loss    += criterion(test_outputs, test_labels) 
                 test_iters += 1  
             test_loss = test_loss / test_iters
