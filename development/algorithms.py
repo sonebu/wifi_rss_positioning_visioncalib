@@ -113,7 +113,24 @@ class RssPosAlgo_NeuralNet_MLP4layer(nn.Module):
             x = x.view(batch_size, seq_len, -1)  # Shape: (batch_size, 2)
         
         return x
-# best_match_xy is an array of size 1x2, for loc_x and loc_y respectively
+
+## inference (predicts loc based on rss input with forward() fcn)
+class RssPosAlgo_NeuralNet_CNNv1(nn.Module):
+    def __init__(self, kernel_size, inch=3):
+        super(RssPosAlgo_NeuralNet_CNNv1, self).__init__()
+        self.inch = inch
+        self.input_layer = nn.Conv1d(inch, 5, kernel_size=kernel_size, padding='valid')
+        self.hidden_layer1 = nn.Conv1d(5, 8, kernel_size=kernel_size, padding='valid')
+        self.hidden_layer2 = nn.Conv1d(8, 4, kernel_size=kernel_size, padding='valid')
+        self.output_layer = nn.Conv1d(4, 2, kernel_size=kernel_size, padding='valid')
+        self.activation_fcn = nn.ReLU()
+
+    def forward(self, x):
+        x = self.activation_fcn(self.input_layer(x))
+        x = self.activation_fcn(self.hidden_layer1(x))
+        x = self.activation_fcn(self.hidden_layer2(x))
+        x = self.output_layer(x)
+        return x
 
 ## training function (takes in loss, optimizer, some parameters, and runs the loop)
 def RssPosAlgo_NeuralNet_supervisedTrainingLoop(train_loader, test_loader, model, criterion, optimizer, epochs, testfreq):    
@@ -125,8 +142,8 @@ def RssPosAlgo_NeuralNet_supervisedTrainingLoop(train_loader, test_loader, model
             test_loss = 0;
             test_iters = 0;
             for test_inputs, test_labels in test_loader:
-                test_outputs = model(test_inputs)
-                test_loss    += criterion(test_outputs, test_labels) 
+                test_outputs = model(test_inputs.to(model.device))
+                test_loss    += criterion(test_outputs, test_labels.to(model.device)) 
                 test_iters += 1  
             test_loss = test_loss / test_iters
             print(f'Epoch [{i + 1}/{epochs}] test loss: {test_loss:.3f}, training loss: {-1 if running_loss is None else running_loss:.3f}')
@@ -136,8 +153,8 @@ def RssPosAlgo_NeuralNet_supervisedTrainingLoop(train_loader, test_loader, model
         train_iters = 0
         for inputs, labels in train_loader: # train_loader'dan her bir batch için
             optimizer.zero_grad()   
-            outputs = model(inputs)     
-            loss = criterion(outputs, labels)   
+            outputs = model(inputs.to(model.device))     
+            loss = criterion(outputs, labels.to(model.device))   
             loss.backward()            
             optimizer.step()         
             running_loss += loss.item() 
