@@ -113,38 +113,35 @@ def loadData_staticTargetAddrMatch(json_file, second_hold = 5, shuffle=False, ta
     return inp_rss_vals, gt_locations
 
 class SequentialDataset(Dataset):
-    def __init__(self, inp_rss_vals, gt_locations, window_size, cnn_data=False, cnn_validpaddingkernelsize=None):
+    def __init__(self, inp_rss_vals, gt_locations, window_size, cnn_data=False, cnn_kernel_sizes=None):
         self.inp_rss_vals = inp_rss_vals
         self.gt_locations = gt_locations
         self.window_size = window_size
         self.cnn_data = cnn_data
-        self.cnn_validpaddingkernelsize = cnn_validpaddingkernelsize
+        self.cnn_kernel_sizes = cnn_kernel_sizes
         
     def __len__(self):
-        # Number of sequences you can create (size of data - window_size + 1)
         return len(self.inp_rss_vals) - self.window_size + 1
 
     def __getitem__(self, idx):
-        # Get a window of 'window_size' sequential samples
         if(self.cnn_data):
             x_seq = torch.swapaxes(torch.tensor(self.inp_rss_vals[idx:idx + self.window_size], dtype=torch.float32),0,1)
             y_seq = torch.swapaxes(torch.tensor(self.gt_locations[idx:idx + self.window_size], dtype=torch.float32),0,1)
-            if(self.cnn_validpaddingkernelsize is not None):
-                enlargement = 1*1*(4*(self.cnn_validpaddingkernelsize-1)+1)
-                # getting the average of the outputs to match the valid padding CNN size
-                temp0 = torch.nn.functional.conv1d(y_seq[0,:].unsqueeze(0), torch.ones(1,1,4*(self.cnn_validpaddingkernelsize-1)+1)/enlargement, padding="valid")
-                temp1 = torch.nn.functional.conv1d(y_seq[1,:].unsqueeze(0), torch.ones(1,1,4*(self.cnn_validpaddingkernelsize-1)+1)/enlargement, padding="valid")
+            if(self.cnn_kernel_sizes is not None):
+                total_reduction = sum(k - 1 for k in self.cnn_kernel_sizes)
+                enlargement_kernel_size = total_reduction + 1
+                enlargement = 1.0 / enlargement_kernel_size
+                temp0 = torch.nn.functional.conv1d(y_seq[0,:].unsqueeze(0), torch.ones(1,1,enlargement_kernel_size)*enlargement, padding="valid")
+                temp1 = torch.nn.functional.conv1d(y_seq[1,:].unsqueeze(0), torch.ones(1,1,enlargement_kernel_size)*enlargement, padding="valid")
                 y_seq = torch.concat((temp0,temp1),dim=0) 
         else:
             x_seq = torch.tensor(self.inp_rss_vals[idx:idx + self.window_size], dtype=torch.float32)
             y_seq = torch.tensor(self.gt_locations[idx:idx + self.window_size], dtype=torch.float32)
         return x_seq, y_seq
 
-def prepare_data_loaders(inp_rss_vals, gt_locations, batch_size=1, window_size=20, train_test_split=0.5, cnn_data=False, cnn_validpaddingkernelsize=None):
-    # Determine split index based on train_test_split ratio
+def prepare_data_loaders(inp_rss_vals, gt_locations, batch_size=1, window_size=20, train_test_split=0.5, cnn_data=False, cnn_kernel_sizes=None):
     split_index = int(len(inp_rss_vals) * train_test_split)
     
-    # Split the data into training and testing sets
     x_train = inp_rss_vals[:split_index, :]
     x_test = inp_rss_vals[split_index:, :]
     y_train = gt_locations[:split_index, :]
@@ -155,11 +152,9 @@ def prepare_data_loaders(inp_rss_vals, gt_locations, batch_size=1, window_size=2
     tensor_x_test = torch.tensor(x_test, dtype=torch.float32)
     tensor_y_test = torch.tensor(y_test, dtype=torch.float32)
 
-    # Create datasets with sequential samples (Nx3) for both training and testing
-    train_dataset = SequentialDataset(x_train, y_train, window_size, cnn_data, cnn_validpaddingkernelsize)
-    test_dataset = SequentialDataset(x_test, y_test, window_size, cnn_data, cnn_validpaddingkernelsize)
+    train_dataset = SequentialDataset(x_train, y_train, window_size, cnn_data, cnn_kernel_sizes)
+    test_dataset = SequentialDataset(x_test, y_test, window_size, cnn_data, cnn_kernel_sizes)
 
-    # Create data loaders
     train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
     test_loader = DataLoader(test_dataset, batch_size=1, shuffle=False)
 

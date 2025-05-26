@@ -116,20 +116,45 @@ class RssPosAlgo_NeuralNet_MLP4layer(nn.Module):
 
 ## inference (predicts loc based on rss input with forward() fcn)
 class RssPosAlgo_NeuralNet_CNNv1(nn.Module):
-    def __init__(self, kernel_size, inch=3):
+    def __init__(self, output_channels, kernel_sizes=None, inch=3):
         super(RssPosAlgo_NeuralNet_CNNv1, self).__init__()
         self.inch = inch
-        self.input_layer = nn.Conv1d(inch, 5, kernel_size=kernel_size, padding='valid')
-        self.hidden_layer1 = nn.Conv1d(5, 8, kernel_size=kernel_size, padding='valid')
-        self.hidden_layer2 = nn.Conv1d(8, 4, kernel_size=kernel_size, padding='valid')
-        self.output_layer = nn.Conv1d(4, 2, kernel_size=kernel_size, padding='valid')
+        self.output_channels = output_channels
+        
+        if kernel_sizes is None:
+            self.kernel_sizes = [3] * len(output_channels)
+        elif isinstance(kernel_sizes, int):
+            self.kernel_sizes = [kernel_sizes] * len(output_channels)
+        elif isinstance(kernel_sizes, list):
+            if len(kernel_sizes) != len(output_channels):
+                raise ValueError(f"Length of kernel_sizes ({len(kernel_sizes)}) must match length of output_channels ({len(output_channels)})")
+            self.kernel_sizes = kernel_sizes
+        else:
+            raise ValueError("kernel_sizes must be None, int, or list")
+        
+        self.layers = nn.ModuleList()
+        in_channels = inch
+        
+        for i, (out_channels, kernel_size) in enumerate(zip(output_channels, self.kernel_sizes)):
+            layer = nn.Conv1d(in_channels, out_channels, kernel_size=kernel_size, padding='valid')
+            self.layers.append(layer)
+            in_channels = out_channels
+        
         self.activation_fcn = nn.ReLU()
+        
+        total_reduction = sum(k - 1 for k in self.kernel_sizes)
+        self.min_input_length = total_reduction + 1
 
     def forward(self, x):
-        x = self.activation_fcn(self.input_layer(x))
-        x = self.activation_fcn(self.hidden_layer1(x))
-        x = self.activation_fcn(self.hidden_layer2(x))
-        x = self.output_layer(x)
+        seq_len = x.size(-1)
+        if seq_len < self.min_input_length:
+            raise ValueError(f"Input sequence length ({seq_len}) too short. Minimum required: {self.min_input_length}")
+        
+        for i, layer in enumerate(self.layers[:-1]):
+            x = self.activation_fcn(layer(x))
+        
+        x = self.layers[-1](x)
+        
         return x
 
 ## training function (takes in loss, optimizer, some parameters, and runs the loop)
