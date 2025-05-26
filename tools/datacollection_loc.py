@@ -1,5 +1,6 @@
 import argparse, os, sys
 import time
+import json
 
 if __name__ == "__main__":
     # construct the argument parser and parse the arguments
@@ -218,6 +219,44 @@ if __name__ == "__main__":
                 self.location_map = location_map
                 self.input_val = input_val
                 self.loc_data_buffer = deque(maxlen=500)
+                
+                # Video recording setup - hardcoded config
+                self.recording_enabled = True
+                self.video_writer = None
+                self.experiment_folder = args["experiment_folderpath"]
+                
+                if self.recording_enabled:
+                    self.setup_video_recording()
+            
+            def setup_video_recording(self):
+                """Initialize video recording with timestamp-based filename"""
+                timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+                video_filename = os.path.join(self.experiment_folder, f"experiment_video_{timestamp}.mp4")
+                
+                # Get camera properties
+                fps = self.cap_obj.get(cv2.CAP_PROP_FPS) or 30.0
+                width = int(self.cap_obj.get(cv2.CAP_PROP_FRAME_WIDTH))
+                height = int(self.cap_obj.get(cv2.CAP_PROP_FRAME_HEIGHT))
+                
+                # Initialize video writer with mp4v codec
+                fourcc = cv2.VideoWriter_fourcc(*'mp4v')
+                self.video_writer = cv2.VideoWriter(video_filename, fourcc, fps, (width, height))
+                
+                # Save video metadata for potential offline processing
+                metadata = {
+                    "video_file": os.path.basename(video_filename),
+                    "fps": fps,
+                    "resolution": [width, height],
+                    "start_time": time.time(),
+                    "start_timestamp": datetime.datetime.now().isoformat(),
+                    "experiment_folder": self.experiment_folder
+                }
+                
+                metadata_file = os.path.join(self.experiment_folder, "video_metadata.json")
+                with open(metadata_file, 'w') as f:
+                    json.dump(metadata, f, indent=2)
+                
+                print(f"Video recording started: {video_filename}")
 
             def run(self):
                 c=0
@@ -291,6 +330,10 @@ if __name__ == "__main__":
                                             c+=1
 
                         self.change_pixmap_signal.emit(cv_img)
+                        
+                        # Record the processed frame (with bounding boxes and annotations)
+                        if self.recording_enabled and self.video_writer:
+                            self.video_writer.write(cv_img)
 
                 # shut down capture system
                 self.cap_obj.release()
@@ -299,6 +342,12 @@ if __name__ == "__main__":
                 """Sets run flag to False and waits for thread to finish"""
                 self._run_flag = False
                 self.loc_xy_file.close()
+                
+                # Close video writer
+                if self.recording_enabled and self.video_writer:
+                    self.video_writer.release()
+                    print("Video recording stopped and saved")
+                
                 self.wait()
 
             def filter_last_5_seconds(self):
