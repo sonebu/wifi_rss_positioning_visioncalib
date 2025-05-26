@@ -263,6 +263,10 @@ if __name__ == "__main__":
                 while self._run_flag:
                     ret, cv_img = self.cap_obj.read()
                     if ret:
+                        # Record the raw frame (before any processing)
+                        if self.recording_enabled and self.video_writer:
+                            self.video_writer.write(cv_img)
+                        
                         # run YOLO
                         yolo_predictions = self.model(cv_img, stream=True, verbose=False)
                         yolo_detections = np.empty((0, 5))
@@ -330,10 +334,6 @@ if __name__ == "__main__":
                                             c+=1
 
                         self.change_pixmap_signal.emit(cv_img)
-                        
-                        # Record the processed frame (with bounding boxes and annotations)
-                        if self.recording_enabled and self.video_writer:
-                            self.video_writer.write(cv_img)
 
                 # shut down capture system
                 self.cap_obj.release()
