@@ -171,7 +171,7 @@ def RssPosAlgo_NeuralNet_supervisedTrainingLoop(train_loader, test_loader, model
                 test_loss    += criterion(test_outputs, test_labels.to(model.device)) 
                 test_iters += 1  
             test_loss = test_loss / test_iters
-            print(f'Epoch [{i + 1}/{epochs}] test loss: {test_loss:.3f}, training loss: {-1 if running_loss is None else running_loss:.3f}')
+            print(f'Epoch [{i + 1}/{epochs}] test loss: {test_loss:.5f}, training loss: {-1 if running_loss is None else running_loss:.5f}')
             model.train()
         # then keep on training
         running_loss = 0.0 # başlangıçta loss değeri 0
